@@ -1,0 +1,3745 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cluster — One place, infinite paths</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #05050a;
+    --surface: #0d0d18;
+    --surface2: #121220;
+    --border: rgba(255,255,255,0.07);
+    --accent: #6c63ff;
+    --accent2: #ff6b9d;
+    --accent3: #00d4aa;
+    --text: #f0f0ff;
+    --text-muted: #7070a0;
+    --text-dim: #3a3a60;
+    --glow: rgba(108,99,255,0.3);
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    overflow-x: hidden;
+    cursor: none;
+  }
+
+  /* CUSTOM CURSOR */
+  #cursor-dot {
+    position: fixed;
+    width: 8px; height: 8px;
+    background: var(--accent);
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: 99999;
+    transform: translate(-50%, -50%);
+    transition: transform 0.08s ease, background 0.2s;
+    box-shadow: 0 0 10px var(--accent), 0 0 20px rgba(108,99,255,0.4);
+  }
+
+  #cursor-ring {
+    position: fixed;
+    width: 36px; height: 36px;
+    border: 1.5px solid rgba(108,99,255,0.6);
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: 99998;
+    transform: translate(-50%, -50%);
+    transition: width 0.3s ease, height 0.3s ease, border-color 0.3s, background 0.3s, transform 0.12s ease;
+    backdrop-filter: blur(1px);
+  }
+
+  #cursor-trail {
+    position: fixed;
+    pointer-events: none;
+    z-index: 99997;
+  }
+
+  .trail-dot {
+    position: fixed;
+    width: 4px; height: 4px;
+    background: var(--accent);
+    border-radius: 50%;
+    pointer-events: none;
+    transform: translate(-50%, -50%);
+    opacity: 0;
+  }
+
+  body.cursor-hover #cursor-dot {
+    transform: translate(-50%, -50%) scale(2.5);
+    background: var(--accent2);
+    box-shadow: 0 0 16px var(--accent2), 0 0 32px rgba(255,107,157,0.5);
+  }
+
+  body.cursor-hover #cursor-ring {
+    width: 56px; height: 56px;
+    border-color: rgba(255,107,157,0.5);
+    background: rgba(255,107,157,0.04);
+  }
+
+  body.cursor-click #cursor-dot {
+    transform: translate(-50%, -50%) scale(0.5);
+  }
+
+  body.cursor-click #cursor-ring {
+    width: 20px; height: 20px;
+    border-color: var(--accent);
+  }
+
+  a, button, .module-card, .interest-tag, .tech-pill, .counselor-card, .team-card, .flow-node, .arch-node, .problem-card, .opp-item, .deploy-card, .chat-send, .nav-cta, .btn-primary, .btn-secondary, .hamburger, [onclick] {
+    cursor: none !important;
+  }
+
+  /* NOISE OVERLAY */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+    opacity: 0.4;
+    pointer-events: none;
+    z-index: 999;
+  }
+
+  /* SCROLLBAR */
+  ::-webkit-scrollbar { width: 4px; }
+  ::-webkit-scrollbar-track { background: var(--bg); }
+  ::-webkit-scrollbar-thumb { background: var(--accent); border-radius: 2px; }
+
+  /* NAV */
+  nav {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    z-index: 100;
+    padding: 20px 60px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid var(--border);
+    background: rgba(5,5,10,0.8);
+    backdrop-filter: blur(20px);
+  }
+
+  .nav-logo {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: 1.5rem;
+    letter-spacing: -0.03em;
+    color: var(--text);
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .nav-logo-dot {
+    width: 8px; height: 8px;
+    background: var(--accent);
+    border-radius: 50%;
+    box-shadow: 0 0 12px var(--accent);
+    animation: pulse 2s ease-in-out infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { transform: scale(1); opacity: 1; }
+    50% { transform: scale(1.4); opacity: 0.7; }
+  }
+
+  .nav-links {
+    display: flex;
+    gap: 36px;
+    list-style: none;
+  }
+
+  .nav-links a {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.85rem;
+    font-weight: 400;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    text-decoration: none;
+    transition: color 0.2s;
+  }
+
+  .nav-links a:hover { color: var(--text); }
+
+  .nav-cta {
+    background: var(--accent);
+    color: white !important;
+    padding: 9px 22px;
+    border-radius: 100px;
+    font-weight: 500 !important;
+    transition: background 0.2s, transform 0.2s, box-shadow 0.2s !important;
+  }
+
+  .nav-cta:hover {
+    background: #8b84ff !important;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 20px var(--glow);
+  }
+
+  /* HERO */
+  #hero {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    padding: 140px 60px 100px;
+  }
+
+  .hero-grid-bg {
+    position: absolute;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(108,99,255,0.05) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(108,99,255,0.05) 1px, transparent 1px);
+    background-size: 60px 60px;
+    mask-image: radial-gradient(ellipse 80% 60% at 50% 50%, black, transparent);
+  }
+
+  .hero-orb {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(80px);
+    pointer-events: none;
+  }
+
+  .orb1 {
+    width: 600px; height: 600px;
+    background: radial-gradient(circle, rgba(108,99,255,0.25), transparent 70%);
+    top: -100px; left: -100px;
+    animation: orbFloat 8s ease-in-out infinite;
+  }
+
+  .orb2 {
+    width: 400px; height: 400px;
+    background: radial-gradient(circle, rgba(255,107,157,0.2), transparent 70%);
+    bottom: 0; right: -50px;
+    animation: orbFloat 10s ease-in-out infinite reverse;
+  }
+
+  .orb3 {
+    width: 300px; height: 300px;
+    background: radial-gradient(circle, rgba(0,212,170,0.15), transparent 70%);
+    top: 40%; left: 60%;
+    animation: orbFloat 6s ease-in-out infinite 2s;
+  }
+
+  @keyframes orbFloat {
+    0%, 100% { transform: translate(0, 0) scale(1); }
+    33% { transform: translate(30px, -20px) scale(1.05); }
+    66% { transform: translate(-20px, 15px) scale(0.97); }
+  }
+
+  .hero-content {
+    position: relative;
+    z-index: 2;
+    text-align: center;
+    max-width: 960px;
+    width: 100%;
+  }
+
+  .hero-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(108,99,255,0.1);
+    border: 1px solid rgba(108,99,255,0.3);
+    border-radius: 100px;
+    padding: 8px 18px;
+    font-family: 'Space Mono', monospace;
+    font-size: 0.7rem;
+    letter-spacing: 0.1em;
+    color: var(--accent);
+    margin-bottom: 40px;
+    animation: fadeUp 0.8s ease both;
+  }
+
+  .badge-dot {
+    width: 6px; height: 6px;
+    background: var(--accent3);
+    border-radius: 50%;
+    animation: pulse 1.5s ease-in-out infinite;
+  }
+
+  .hero-title {
+    font-family: 'Syne', sans-serif;
+    font-size: clamp(3.5rem, 8vw, 7rem);
+    font-weight: 800;
+    line-height: 0.95;
+    letter-spacing: -0.04em;
+    margin-bottom: 12px;
+    animation: fadeUp 0.8s ease 0.1s both;
+  }
+
+  .hero-title-line2 {
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .hero-tagline {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.85rem;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin-bottom: 32px;
+    animation: fadeUp 0.8s ease 0.2s both;
+  }
+
+  .hero-desc {
+    font-size: 1.15rem;
+    font-weight: 300;
+    line-height: 1.7;
+    color: rgba(240,240,255,0.65);
+    max-width: 580px;
+    margin: 0 auto 52px;
+    animation: fadeUp 0.8s ease 0.3s both;
+  }
+
+  .hero-actions {
+    display: flex;
+    gap: 16px;
+    justify-content: center;
+    flex-wrap: wrap;
+    animation: fadeUp 0.8s ease 0.4s both;
+  }
+
+  .btn-primary {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    background: var(--accent);
+    color: white;
+    padding: 16px 36px;
+    border-radius: 100px;
+    font-family: 'Syne', sans-serif;
+    font-weight: 600;
+    font-size: 0.95rem;
+    letter-spacing: 0.02em;
+    text-decoration: none;
+    border: none;
+    cursor: pointer;
+    transition: all 0.3s;
+    box-shadow: 0 0 40px rgba(108,99,255,0.4);
+  }
+
+  .btn-primary:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 40px rgba(108,99,255,0.6);
+    background: #8b84ff;
+  }
+
+  .btn-secondary {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    background: transparent;
+    color: var(--text);
+    padding: 16px 36px;
+    border-radius: 100px;
+    font-family: 'Syne', sans-serif;
+    font-weight: 600;
+    font-size: 0.95rem;
+    text-decoration: none;
+    border: 1px solid var(--border);
+    cursor: pointer;
+    transition: all 0.3s;
+  }
+
+  .btn-secondary:hover {
+    border-color: rgba(255,255,255,0.2);
+    background: rgba(255,255,255,0.04);
+    transform: translateY(-2px);
+  }
+
+  .hero-stats {
+    display: flex;
+    justify-content: center;
+    gap: 60px;
+    animation: fadeUp 0.8s ease 0.6s both;
+    margin-top: 60px;
+    padding-top: 40px;
+    border-top: 1px solid var(--border);
+    width: 100%;
+  }
+
+  .stat {
+    text-align: center;
+  }
+
+  .stat-num {
+    font-family: 'Syne', sans-serif;
+    font-size: 2rem;
+    font-weight: 800;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .stat-label {
+    font-size: 0.75rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin-top: 4px;
+  }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(24px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* SECTIONS COMMON */
+  section {
+    padding: 100px 60px;
+    position: relative;
+  }
+
+  .section-label {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.7rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .section-label::before {
+    content: '';
+    width: 24px; height: 1px;
+    background: var(--accent);
+  }
+
+  .section-title {
+    font-family: 'Syne', sans-serif;
+    font-size: clamp(2rem, 4vw, 3.2rem);
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    line-height: 1.1;
+    margin-bottom: 20px;
+  }
+
+  .section-desc {
+    font-size: 1.05rem;
+    font-weight: 300;
+    line-height: 1.75;
+    color: rgba(240,240,255,0.6);
+    max-width: 540px;
+  }
+
+  .divider {
+    height: 1px;
+    background: var(--border);
+    margin: 0 60px;
+  }
+
+  /* PROBLEM */
+  #problem {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 80px;
+    align-items: center;
+  }
+
+  .problem-visual {
+    position: relative;
+  }
+
+  .problem-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 28px;
+    margin-bottom: 16px;
+    position: relative;
+    overflow: hidden;
+    transition: transform 0.3s, border-color 0.3s;
+  }
+
+  .problem-card:hover {
+    transform: translateX(8px);
+    border-color: rgba(255,107,157,0.3);
+  }
+
+  .problem-card::before {
+    content: '';
+    position: absolute;
+    left: 0; top: 0; bottom: 0;
+    width: 3px;
+    background: var(--accent2);
+  }
+
+  .problem-card h4 {
+    font-family: 'Syne', sans-serif;
+    font-size: 0.95rem;
+    font-weight: 700;
+    margin-bottom: 8px;
+  }
+
+  .problem-card p {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    line-height: 1.6;
+  }
+
+  .problem-icon {
+    font-size: 1.4rem;
+    margin-bottom: 10px;
+  }
+
+  /* OPPORTUNITY */
+  #opportunity {
+    background: var(--surface);
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .opp-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 2px;
+    margin-top: 60px;
+    border: 1px solid var(--border);
+    border-radius: 24px;
+    overflow: hidden;
+  }
+
+  .opp-item {
+    padding: 44px 36px;
+    background: var(--surface2);
+    transition: background 0.3s;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .opp-item::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, var(--accent), transparent);
+    opacity: 0;
+    transition: opacity 0.3s;
+  }
+
+  .opp-item:hover::after { opacity: 0.05; }
+  .opp-item:hover { background: rgba(108,99,255,0.08); }
+
+  .opp-number {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.7rem;
+    color: var(--text-dim);
+    letter-spacing: 0.1em;
+    margin-bottom: 20px;
+  }
+
+  .opp-stat {
+    font-family: 'Syne', sans-serif;
+    font-size: 2.8rem;
+    font-weight: 800;
+    letter-spacing: -0.04em;
+    background: linear-gradient(135deg, var(--text), var(--accent));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 12px;
+  }
+
+  .opp-desc {
+    font-size: 0.88rem;
+    color: var(--text-muted);
+    line-height: 1.6;
+  }
+
+  /* APPROACH */
+  #approach {
+    display: grid;
+    grid-template-columns: 1fr 1.3fr;
+    gap: 80px;
+    align-items: start;
+  }
+
+  .approach-steps {
+    margin-top: 48px;
+  }
+
+  .approach-step {
+    display: flex;
+    gap: 24px;
+    margin-bottom: 36px;
+    cursor: pointer;
+  }
+
+  .step-num {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.7rem;
+    color: var(--accent);
+    width: 28px;
+    flex-shrink: 0;
+    padding-top: 4px;
+  }
+
+  .step-content h4 {
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    margin-bottom: 8px;
+    font-size: 1rem;
+  }
+
+  .step-content p {
+    font-size: 0.88rem;
+    color: var(--text-muted);
+    line-height: 1.65;
+  }
+
+  .approach-visual {
+    position: sticky;
+    top: 120px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 28px;
+    padding: 48px;
+    overflow: hidden;
+  }
+
+  .approach-visual::before {
+    content: '';
+    position: absolute;
+    top: -60px; right: -60px;
+    width: 200px; height: 200px;
+    background: radial-gradient(circle, rgba(108,99,255,0.2), transparent 70%);
+    border-radius: 50%;
+  }
+
+  .flow-diagram {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+  }
+
+  .flow-node {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 16px 20px;
+    background: var(--surface2);
+    border-radius: 14px;
+    border: 1px solid var(--border);
+    margin-bottom: 8px;
+    transition: all 0.3s;
+  }
+
+  .flow-node:hover {
+    border-color: var(--accent);
+    background: rgba(108,99,255,0.08);
+    transform: translateX(4px);
+  }
+
+  .flow-icon {
+    width: 40px; height: 40px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.1rem;
+    flex-shrink: 0;
+  }
+
+  .flow-arrow {
+    text-align: center;
+    color: var(--text-dim);
+    font-size: 1rem;
+    margin: 2px 0;
+    padding-left: 36px;
+  }
+
+  .flow-label {
+    font-family: 'Syne', sans-serif;
+    font-size: 0.88rem;
+    font-weight: 600;
+  }
+
+  .flow-sub {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+  }
+
+  /* MODULES */
+  #modules {
+    padding-top: 100px;
+  }
+
+  .modules-header {
+    text-align: center;
+    margin-bottom: 70px;
+  }
+
+  .modules-header .section-label {
+    justify-content: center;
+  }
+
+  .modules-header .section-label::before { display: none; }
+
+  .modules-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+    margin-bottom: 20px;
+  }
+
+  .module-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 24px;
+    padding: 40px 36px;
+    position: relative;
+    overflow: hidden;
+    cursor: pointer;
+    transition: all 0.4s;
+    group: true;
+  }
+
+  .module-card:hover {
+    transform: translateY(-6px);
+    border-color: var(--accent);
+    box-shadow: 0 20px 60px rgba(108,99,255,0.15);
+  }
+
+  .module-card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: 24px;
+    background: var(--card-gradient, linear-gradient(135deg, rgba(108,99,255,0.08), transparent));
+    opacity: 0;
+    transition: opacity 0.4s;
+  }
+
+  .module-card:hover::before { opacity: 1; }
+
+  .module-card.purple { --card-gradient: linear-gradient(135deg, rgba(108,99,255,0.12), transparent); }
+  .module-card.pink { --card-gradient: linear-gradient(135deg, rgba(255,107,157,0.12), transparent); }
+  .module-card.teal { --card-gradient: linear-gradient(135deg, rgba(0,212,170,0.12), transparent); }
+  .module-card.orange { --card-gradient: linear-gradient(135deg, rgba(255,167,38,0.12), transparent); }
+  .module-card.blue { --card-gradient: linear-gradient(135deg, rgba(41,182,246,0.12), transparent); }
+
+  .module-icon-wrap {
+    width: 56px; height: 56px;
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    margin-bottom: 24px;
+    position: relative;
+    z-index: 1;
+  }
+
+  .module-card.purple .module-icon-wrap { background: rgba(108,99,255,0.15); }
+  .module-card.pink .module-icon-wrap { background: rgba(255,107,157,0.15); }
+  .module-card.teal .module-icon-wrap { background: rgba(0,212,170,0.15); }
+  .module-card.orange .module-icon-wrap { background: rgba(255,167,38,0.15); }
+  .module-card.blue .module-icon-wrap { background: rgba(41,182,246,0.15); }
+
+  .module-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 1.15rem;
+    font-weight: 700;
+    margin-bottom: 12px;
+    position: relative;
+    z-index: 1;
+  }
+
+  .module-desc {
+    font-size: 0.87rem;
+    color: var(--text-muted);
+    line-height: 1.65;
+    position: relative;
+    z-index: 1;
+    margin-bottom: 24px;
+  }
+
+  .module-features {
+    list-style: none;
+    position: relative;
+    z-index: 1;
+  }
+
+  .module-features li {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    padding: 5px 0;
+    padding-left: 16px;
+    position: relative;
+  }
+
+  .module-features li::before {
+    content: '→';
+    position: absolute;
+    left: 0;
+    color: var(--accent);
+    font-size: 0.75rem;
+  }
+
+  /* COUNSELORS */
+  #counselors {
+    background: var(--surface);
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .counselors-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 20px;
+    margin-top: 60px;
+  }
+
+  .counselor-card {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 30px 24px;
+    text-align: center;
+    transition: all 0.3s;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .counselor-card:hover {
+    border-color: rgba(108,99,255,0.3);
+    transform: translateY(-4px);
+    box-shadow: 0 12px 40px rgba(108,99,255,0.1);
+  }
+
+  .counselor-avatar {
+    width: 72px; height: 72px;
+    border-radius: 50%;
+    margin: 0 auto 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.8rem;
+    position: relative;
+  }
+
+  .counselor-avatar::after {
+    content: '';
+    position: absolute;
+    inset: -2px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    z-index: -1;
+    opacity: 0;
+    transition: opacity 0.3s;
+  }
+
+  .counselor-card:hover .counselor-avatar::after { opacity: 1; }
+
+  .counselor-name {
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: 0.95rem;
+    margin-bottom: 6px;
+  }
+
+  .counselor-title {
+    font-size: 0.78rem;
+    color: var(--accent);
+    margin-bottom: 10px;
+    font-weight: 500;
+  }
+
+  .counselor-desc {
+    font-size: 0.78rem;
+    color: var(--text-muted);
+    line-height: 1.6;
+  }
+
+  .counselor-tag {
+    display: inline-block;
+    background: rgba(108,99,255,0.1);
+    border: 1px solid rgba(108,99,255,0.2);
+    color: var(--accent);
+    font-size: 0.68rem;
+    padding: 3px 10px;
+    border-radius: 100px;
+    margin-top: 12px;
+  }
+
+  /* EXPLAINABLE AI */
+  #xai {
+    display: grid;
+    grid-template-columns: 1.2fr 1fr;
+    gap: 80px;
+    align-items: center;
+  }
+
+  .xai-visual {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 28px;
+    padding: 48px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .xai-visual::before {
+    content: '';
+    position: absolute;
+    bottom: -80px; left: -80px;
+    width: 300px; height: 300px;
+    background: radial-gradient(circle, rgba(0,212,170,0.15), transparent 70%);
+    border-radius: 50%;
+  }
+
+  .decision-tree {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.75rem;
+    line-height: 2;
+    color: var(--text-muted);
+    position: relative;
+    z-index: 1;
+  }
+
+  .dt-node {
+    padding: 10px 16px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    transition: all 0.3s;
+  }
+
+  .dt-node:hover {
+    border-color: var(--accent3);
+    color: var(--text);
+  }
+
+  .dt-node.highlight {
+    border-color: var(--accent3);
+    background: rgba(0,212,170,0.08);
+    color: var(--accent3);
+  }
+
+  .dt-indent {
+    margin-left: 24px;
+  }
+
+  .dt-indent2 {
+    margin-left: 48px;
+  }
+
+  .confidence-bar {
+    height: 4px;
+    background: var(--surface2);
+    border-radius: 2px;
+    overflow: hidden;
+    margin-top: 6px;
+    margin-bottom: 16px;
+  }
+
+  .confidence-fill {
+    height: 100%;
+    border-radius: 2px;
+    background: linear-gradient(90deg, var(--accent), var(--accent2));
+    transition: width 1.5s ease;
+  }
+
+  .xai-features {
+    margin-top: 40px;
+  }
+
+  .xai-feature {
+    display: flex;
+    gap: 16px;
+    margin-bottom: 28px;
+    align-items: flex-start;
+  }
+
+  .xai-feature-icon {
+    width: 44px; height: 44px;
+    background: rgba(0,212,170,0.1);
+    border: 1px solid rgba(0,212,170,0.2);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.1rem;
+    flex-shrink: 0;
+  }
+
+  .xai-feature h4 {
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: 0.95rem;
+    margin-bottom: 6px;
+  }
+
+  .xai-feature p {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    line-height: 1.6;
+  }
+
+  /* TECH STACK */
+  #tech {
+    background: var(--surface);
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .tech-header {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 60px;
+    margin-bottom: 60px;
+  }
+
+  .tech-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+  }
+
+  .tech-category {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 32px;
+    transition: border-color 0.3s;
+  }
+
+  .tech-category:hover { border-color: rgba(108,99,255,0.3); }
+
+  .tech-cat-title {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.68rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 20px;
+  }
+
+  .tech-items {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .tech-pill {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 7px 14px;
+    font-size: 0.82rem;
+    color: var(--text-muted);
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .tech-pill:hover {
+    border-color: rgba(108,99,255,0.4);
+    color: var(--text);
+    background: rgba(108,99,255,0.06);
+  }
+
+  .tech-dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  /* ARCHITECTURE */
+  #architecture {
+    padding: 100px 60px;
+  }
+
+  .arch-header {
+    text-align: center;
+    margin-bottom: 70px;
+  }
+
+  .arch-header .section-label {
+    justify-content: center;
+  }
+
+  .arch-header .section-label::before { display: none; }
+
+  .arch-diagram {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 28px;
+    padding: 60px;
+    overflow: hidden;
+    position: relative;
+  }
+
+  .arch-diagram::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(108,99,255,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(108,99,255,0.03) 1px, transparent 1px);
+    background-size: 40px 40px;
+  }
+
+  .arch-layers {
+    position: relative;
+    z-index: 1;
+  }
+
+  .arch-layer {
+    margin-bottom: 32px;
+  }
+
+  .arch-layer-title {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.65rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    margin-bottom: 12px;
+    padding-left: 8px;
+  }
+
+  .arch-nodes {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+
+  .arch-node {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 14px 20px;
+    font-size: 0.82rem;
+    font-weight: 500;
+    color: var(--text-muted);
+    transition: all 0.3s;
+    cursor: default;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .arch-node:hover {
+    border-color: var(--accent);
+    color: var(--text);
+    transform: translateY(-2px);
+  }
+
+  .arch-node.primary {
+    background: rgba(108,99,255,0.1);
+    border-color: rgba(108,99,255,0.3);
+    color: var(--text);
+  }
+
+  .arch-node.accent2 {
+    background: rgba(255,107,157,0.08);
+    border-color: rgba(255,107,157,0.2);
+  }
+
+  .arch-node.accent3 {
+    background: rgba(0,212,170,0.08);
+    border-color: rgba(0,212,170,0.2);
+  }
+
+  .arch-arrow-row {
+    display: flex;
+    justify-content: center;
+    gap: 60px;
+    margin: 8px 0;
+    color: var(--text-dim);
+    font-size: 0.9rem;
+  }
+
+  /* DEPLOYMENT */
+  #deployment {
+    background: var(--surface);
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 80px;
+    align-items: center;
+  }
+
+  .deploy-cards {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-top: 48px;
+  }
+
+  .deploy-card {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 18px;
+    padding: 28px;
+    transition: all 0.3s;
+  }
+
+  .deploy-card:hover {
+    border-color: rgba(108,99,255,0.3);
+    transform: translateY(-3px);
+  }
+
+  .deploy-card-icon {
+    font-size: 1.6rem;
+    margin-bottom: 14px;
+  }
+
+  .deploy-card h4 {
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: 0.9rem;
+    margin-bottom: 8px;
+  }
+
+  .deploy-card p {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    line-height: 1.6;
+  }
+
+  .scale-visual {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 28px;
+    padding: 44px;
+  }
+
+  .scale-metric {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+  }
+
+  .scale-label {
+    font-size: 0.82rem;
+    color: var(--text-muted);
+  }
+
+  .scale-value {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.82rem;
+    color: var(--accent3);
+  }
+
+  .scale-bar {
+    height: 6px;
+    background: var(--surface2);
+    border-radius: 3px;
+    overflow: hidden;
+    margin-bottom: 28px;
+  }
+
+  .scale-fill {
+    height: 100%;
+    border-radius: 3px;
+    background: linear-gradient(90deg, var(--accent3), var(--accent));
+    transition: width 2s ease 0.5s;
+  }
+
+  /* TEAM */
+  #team {
+    padding: 100px 60px;
+  }
+
+  .team-header {
+    text-align: center;
+    margin-bottom: 70px;
+  }
+
+  .team-header .section-label {
+    justify-content: center;
+  }
+
+  .team-header .section-label::before { display: none; }
+
+  .team-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 20px;
+  }
+
+  .team-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 24px;
+    padding: 36px 28px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+    transition: all 0.4s;
+  }
+
+  .team-card:hover {
+    transform: translateY(-8px);
+    border-color: rgba(108,99,255,0.4);
+    box-shadow: 0 20px 60px rgba(108,99,255,0.15);
+  }
+
+  .team-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, var(--accent), var(--accent2));
+    transform: scaleX(0);
+    transition: transform 0.4s;
+  }
+
+  .team-card:hover::before { transform: scaleX(1); }
+
+  .team-avatar {
+    width: 76px; height: 76px;
+    border-radius: 50%;
+    margin: 0 auto 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2rem;
+    font-weight: 800;
+    font-family: 'Syne', sans-serif;
+    position: relative;
+  }
+
+  .team-avatar-ring {
+    position: absolute;
+    inset: -3px;
+    border-radius: 50%;
+    background: conic-gradient(var(--accent), var(--accent2), var(--accent3), var(--accent));
+    z-index: -1;
+    opacity: 0;
+    transition: opacity 0.4s;
+    animation: spin 4s linear infinite;
+  }
+
+  .team-card:hover .team-avatar-ring { opacity: 1; }
+
+  @keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+  }
+
+  .team-avatar-inner {
+    width: 100%; height: 100%;
+    border-radius: 50%;
+    background: var(--surface2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    z-index: 1;
+  }
+
+  .team-name {
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: 0.9rem;
+    margin-bottom: 6px;
+    line-height: 1.3;
+  }
+
+  .team-role {
+    font-size: 0.75rem;
+    color: var(--accent);
+    font-weight: 500;
+    margin-bottom: 14px;
+  }
+
+  .team-role-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    background: rgba(108,99,255,0.08);
+    border: 1px solid rgba(108,99,255,0.15);
+    border-radius: 100px;
+    padding: 5px 12px;
+    font-size: 0.7rem;
+    color: var(--text-muted);
+  }
+
+  /* AI CHATBOT DEMO */
+  #demo {
+    background: linear-gradient(135deg, rgba(108,99,255,0.05), rgba(255,107,157,0.05));
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+    padding: 100px 60px;
+  }
+
+  .demo-inner {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 80px;
+    align-items: center;
+  }
+
+  .chat-window {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 24px;
+    overflow: hidden;
+    box-shadow: 0 30px 80px rgba(0,0,0,0.3);
+  }
+
+  .chat-header {
+    padding: 20px 24px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    background: var(--surface2);
+  }
+
+  .chat-avatar {
+    width: 38px; height: 38px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1rem;
+  }
+
+  .chat-status {
+    font-family: 'Syne', sans-serif;
+    font-size: 0.88rem;
+    font-weight: 700;
+  }
+
+  .chat-online {
+    font-size: 0.72rem;
+    color: var(--accent3);
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+
+  .online-dot {
+    width: 6px; height: 6px;
+    background: var(--accent3);
+    border-radius: 50%;
+    animation: pulse 1.5s ease-in-out infinite;
+  }
+
+  .chat-body {
+    padding: 24px;
+    min-height: 280px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .chat-msg {
+    display: flex;
+    gap: 10px;
+    align-items: flex-end;
+  }
+
+  .chat-msg.user { flex-direction: row-reverse; }
+
+  .chat-bubble {
+    max-width: 75%;
+    padding: 12px 16px;
+    border-radius: 18px;
+    font-size: 0.84rem;
+    line-height: 1.55;
+  }
+
+  .chat-msg.bot .chat-bubble {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-bottom-left-radius: 4px;
+    color: var(--text);
+  }
+
+  .chat-msg.user .chat-bubble {
+    background: var(--accent);
+    border-bottom-right-radius: 4px;
+    color: white;
+  }
+
+  .chat-input-area {
+    padding: 16px 20px;
+    border-top: 1px solid var(--border);
+    display: flex;
+    gap: 12px;
+    align-items: center;
+  }
+
+  .chat-input {
+    flex: 1;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 100px;
+    padding: 11px 20px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.85rem;
+    color: var(--text);
+    outline: none;
+    transition: border-color 0.2s;
+  }
+
+  .chat-input:focus { border-color: var(--accent); }
+  .chat-input::placeholder { color: var(--text-dim); }
+
+  .chat-send {
+    width: 40px; height: 40px;
+    background: var(--accent);
+    border: none;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.9rem;
+    transition: all 0.2s;
+    flex-shrink: 0;
+  }
+
+  .chat-send:hover {
+    background: #8b84ff;
+    transform: scale(1.05);
+  }
+
+  /* FOOTER */
+  footer {
+    padding: 60px;
+    border-top: 1px solid var(--border);
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr 1fr;
+    gap: 60px;
+  }
+
+  .footer-brand .nav-logo {
+    margin-bottom: 20px;
+    display: flex;
+  }
+
+  .footer-brand p {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    line-height: 1.7;
+    max-width: 280px;
+  }
+
+  .footer-col h5 {
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: 0.9rem;
+    margin-bottom: 20px;
+    color: var(--text);
+  }
+
+  .footer-links {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .footer-links a {
+    font-size: 0.84rem;
+    color: var(--text-muted);
+    text-decoration: none;
+    transition: color 0.2s;
+  }
+
+  .footer-links a:hover { color: var(--text); }
+
+  .footer-bottom {
+    padding: 24px 60px;
+    border-top: 1px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .footer-bottom p {
+    font-size: 0.78rem;
+    color: var(--text-dim);
+  }
+
+  .footer-bottom span {
+    color: var(--accent);
+  }
+
+  /* MODULE MODAL */
+  .module-modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(5,5,10,0.85);
+    backdrop-filter: blur(16px);
+    z-index: 500;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 30px;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+  }
+
+  .module-modal-overlay.open {
+    opacity: 1;
+    pointer-events: all;
+  }
+
+  .module-modal {
+    background: var(--surface);
+    border: 1px solid rgba(108,99,255,0.3);
+    border-radius: 28px;
+    padding: 52px;
+    max-width: 680px;
+    width: 100%;
+    position: relative;
+    transform: translateY(30px) scale(0.97);
+    transition: transform 0.35s cubic-bezier(0.34,1.56,0.64,1);
+    box-shadow: 0 40px 120px rgba(0,0,0,0.6), 0 0 60px rgba(108,99,255,0.15);
+    max-height: 90vh;
+    overflow-y: auto;
+  }
+
+  .module-modal-overlay.open .module-modal {
+    transform: translateY(0) scale(1);
+  }
+
+  .modal-close {
+    position: absolute;
+    top: 24px; right: 24px;
+    width: 38px; height: 38px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1rem;
+    cursor: none;
+    transition: all 0.2s;
+    color: var(--text-muted);
+  }
+
+  .modal-close:hover {
+    background: rgba(255,107,157,0.1);
+    border-color: rgba(255,107,157,0.3);
+    color: var(--accent2);
+  }
+
+  .modal-icon {
+    width: 68px; height: 68px;
+    border-radius: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2rem;
+    margin-bottom: 28px;
+  }
+
+  .modal-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 1.8rem;
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    margin-bottom: 12px;
+  }
+
+  .modal-subtitle {
+    font-size: 0.9rem;
+    color: var(--accent);
+    font-weight: 500;
+    margin-bottom: 20px;
+    font-family: 'Space Mono', monospace;
+    font-size: 0.72rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+
+  .modal-desc {
+    font-size: 1rem;
+    color: rgba(240,240,255,0.7);
+    line-height: 1.75;
+    margin-bottom: 32px;
+  }
+
+  .modal-features-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-bottom: 28px;
+  }
+
+  .modal-feature-item {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 16px;
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+    transition: border-color 0.2s;
+  }
+
+  .modal-feature-item:hover { border-color: rgba(108,99,255,0.3); }
+
+  .modal-feature-icon {
+    font-size: 1.1rem;
+    flex-shrink: 0;
+  }
+
+  .modal-feature-item h5 {
+    font-family: 'Syne', sans-serif;
+    font-size: 0.82rem;
+    font-weight: 700;
+    margin-bottom: 4px;
+  }
+
+  .modal-feature-item p {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    line-height: 1.5;
+  }
+
+  .modal-stats {
+    display: flex;
+    gap: 20px;
+    margin-bottom: 32px;
+    flex-wrap: wrap;
+  }
+
+  .modal-stat {
+    background: rgba(108,99,255,0.08);
+    border: 1px solid rgba(108,99,255,0.2);
+    border-radius: 12px;
+    padding: 14px 20px;
+    flex: 1;
+    min-width: 100px;
+    text-align: center;
+  }
+
+  .modal-stat-num {
+    font-family: 'Syne', sans-serif;
+    font-size: 1.4rem;
+    font-weight: 800;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .modal-stat-label {
+    font-size: 0.7rem;
+    color: var(--text-muted);
+    margin-top: 4px;
+  }
+
+  .modal-cta {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    background: var(--accent);
+    color: white;
+    padding: 14px 32px;
+    border-radius: 100px;
+    font-family: 'Syne', sans-serif;
+    font-weight: 600;
+    font-size: 0.9rem;
+    border: none;
+    cursor: none;
+    transition: all 0.3s;
+    box-shadow: 0 0 30px rgba(108,99,255,0.3);
+  }
+
+  .modal-cta:hover {
+    background: #8b84ff;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 30px rgba(108,99,255,0.5);
+  }
+
+  .module-card-arrow {
+    position: absolute;
+    bottom: 24px; right: 24px;
+    width: 36px; height: 36px;
+    background: rgba(108,99,255,0.1);
+    border: 1px solid rgba(108,99,255,0.2);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.85rem;
+    color: var(--accent);
+    transition: all 0.3s;
+    z-index: 2;
+  }
+
+  .module-card:hover .module-card-arrow {
+    background: var(--accent);
+    color: white;
+    transform: rotate(45deg);
+  }
+
+  /* INTERACTIVE MODULE STYLES */
+  .module-live {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 18px;
+    padding: 28px;
+    margin-bottom: 16px;
+  }
+
+  .module-live h4 {
+    font-family: 'Syne', sans-serif;
+    font-size: 1rem;
+    font-weight: 700;
+    margin-bottom: 16px;
+    color: var(--accent);
+  }
+
+  .live-input {
+    width: 100%;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 14px 18px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.88rem;
+    color: var(--text);
+    outline: none;
+    margin-bottom: 12px;
+    transition: border-color 0.2s;
+    cursor: none;
+  }
+
+  .live-input:focus { border-color: var(--accent); }
+  .live-input::placeholder { color: var(--text-dim); }
+
+  .live-select {
+    width: 100%;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 12px 18px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.88rem;
+    color: var(--text);
+    outline: none;
+    margin-bottom: 12px;
+    cursor: none;
+    appearance: none;
+  }
+
+  .live-btn {
+    background: var(--accent);
+    color: white;
+    border: none;
+    border-radius: 10px;
+    padding: 12px 24px;
+    font-family: 'Syne', sans-serif;
+    font-weight: 600;
+    font-size: 0.88rem;
+    cursor: none;
+    transition: all 0.2s;
+    width: 100%;
+  }
+
+  .live-btn:hover { background: #8b84ff; transform: translateY(-1px); }
+
+  .live-result {
+    background: rgba(108,99,255,0.07);
+    border: 1px solid rgba(108,99,255,0.2);
+    border-radius: 14px;
+    padding: 20px;
+    margin-top: 16px;
+    display: none;
+    animation: fadeUp 0.4s ease both;
+  }
+
+  .live-result.show { display: block; }
+
+  .live-result h5 {
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    color: var(--accent);
+    margin-bottom: 10px;
+    font-size: 0.95rem;
+  }
+
+  .live-result p { font-size: 0.84rem; color: rgba(240,240,255,0.75); line-height: 1.65; }
+
+  .riasec-bars { margin-top: 12px; }
+  .riasec-row { display: flex; align-items: center; gap: 12px; margin-bottom: 10px; }
+  .riasec-label { font-family: 'Space Mono', monospace; font-size: 0.68rem; width: 80px; color: var(--text-muted); }
+  .riasec-track { flex: 1; height: 8px; background: var(--surface); border-radius: 4px; overflow: hidden; }
+  .riasec-fill { height: 100%; border-radius: 4px; background: linear-gradient(90deg, var(--accent), var(--accent2)); transition: width 1s ease; }
+  .riasec-pct { font-family: 'Space Mono', monospace; font-size: 0.68rem; color: var(--accent); width: 32px; text-align: right; }
+
+  .college-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 14px 18px;
+    margin-bottom: 10px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: border-color 0.2s;
+  }
+
+  .college-card:hover { border-color: rgba(108,99,255,0.3); }
+  .college-card-name { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 0.88rem; }
+  .college-card-sub { font-size: 0.75rem; color: var(--text-muted); margin-top: 3px; }
+  .college-card-score {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.78rem;
+    color: var(--accent3);
+    background: rgba(0,212,170,0.08);
+    border: 1px solid rgba(0,212,170,0.2);
+    padding: 4px 10px;
+    border-radius: 100px;
+  }
+
+  .personality-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin-top: 12px;
+  }
+
+  .p-tag {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 10px 12px;
+    font-size: 0.78rem;
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    transition: border-color 0.2s;
+  }
+
+  .p-tag:hover { border-color: rgba(255,107,157,0.3); }
+
+  .module-loading {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 20px;
+    color: var(--text-muted);
+    font-size: 0.85rem;
+  }
+
+  .spin {
+    width: 20px; height: 20px;
+    border: 2px solid var(--border);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+    flex-shrink: 0;
+  }
+
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* SCROLL REVEAL */
+  .reveal {
+    opacity: 0;
+    transform: translateY(30px);
+    transition: opacity 0.7s ease, transform 0.7s ease;
+  }
+
+  .reveal.visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  /* RESPONSIVE MOBILE NAV */
+  .hamburger {
+    display: none;
+    flex-direction: column;
+    gap: 5px;
+    cursor: pointer;
+    padding: 4px;
+  }
+
+  .hamburger span {
+    width: 24px; height: 2px;
+    background: var(--text);
+    border-radius: 1px;
+    transition: all 0.3s;
+  }
+
+  @media (max-width: 1100px) {
+    nav { padding: 20px 30px; }
+    section { padding: 80px 30px; }
+    .divider { margin: 0 30px; }
+    footer { padding: 60px 30px; grid-template-columns: 1fr 1fr; gap: 40px; }
+    .footer-bottom { padding: 24px 30px; }
+    #hero { padding: 120px 30px 80px; }
+    .hero-stats { gap: 30px; }
+    #problem, #approach, #xai, #deployment { grid-template-columns: 1fr; }
+    .tech-header { grid-template-columns: 1fr; }
+    .opp-grid { grid-template-columns: 1fr; }
+    .modules-grid { grid-template-columns: 1fr 1fr; }
+    .counselors-grid { grid-template-columns: 1fr 1fr; }
+    .team-grid { grid-template-columns: repeat(3, 1fr); }
+    .demo-inner { grid-template-columns: 1fr; }
+    .tech-grid { grid-template-columns: 1fr; }
+    .arch-diagram { padding: 30px; }
+    #architecture { padding: 80px 30px; }
+    #team { padding: 80px 30px; }
+    #demo { padding: 80px 30px; }
+    #deployment { padding: 80px 30px; }
+  }
+
+  @media (max-width: 768px) {
+    .nav-links { display: none; }
+    .hamburger { display: flex; }
+    .modules-grid { grid-template-columns: 1fr; }
+    .team-grid { grid-template-columns: 1fr 1fr; }
+    .counselors-grid { grid-template-columns: 1fr; }
+    .hero-stats { flex-wrap: wrap; gap: 20px; }
+    footer { grid-template-columns: 1fr; }
+    .deploy-cards { grid-template-columns: 1fr; }
+  }
+
+  /* MOBILE NAV OPEN STATE */
+  .nav-mobile-open .nav-links {
+    display: flex;
+    flex-direction: column;
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(5,5,10,0.98);
+    align-items: center;
+    justify-content: center;
+    gap: 32px;
+    z-index: 99;
+  }
+
+  .nav-mobile-open .nav-links a {
+    font-size: 1.4rem;
+  }
+
+  /* INTERACTIVE INTEREST FINDER */
+  .interest-demo {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 24px;
+    padding: 40px;
+    margin-top: 60px;
+  }
+
+  .interest-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 1.1rem;
+    font-weight: 700;
+    margin-bottom: 24px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .interest-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 24px;
+  }
+
+  .interest-tag {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 100px;
+    padding: 10px 20px;
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    user-select: none;
+  }
+
+  .interest-tag:hover, .interest-tag.selected {
+    background: rgba(108,99,255,0.15);
+    border-color: var(--accent);
+    color: var(--text);
+  }
+
+  .interest-result {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 24px;
+    display: none;
+  }
+
+  .interest-result.show { display: block; }
+
+  .interest-result h4 {
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    margin-bottom: 8px;
+    color: var(--accent);
+  }
+
+  .interest-result p {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    line-height: 1.6;
+  }
+</style>
+</head>
+<body>
+
+<!-- CUSTOM CURSOR -->
+<div id="cursor-dot"></div>
+<div id="cursor-ring"></div>
+
+<!-- MODULE MODAL -->
+<div class="module-modal-overlay" id="moduleModal" onclick="closeModal(event)">
+  <div class="module-modal" id="modalContent">
+    <button class="modal-close" onclick="closeModalBtn()">✕</button>
+    <div class="modal-icon" id="modalIcon"></div>
+    <div class="modal-subtitle" id="modalSubtitle"></div>
+    <div class="modal-title" id="modalTitle"></div>
+    <div class="modal-desc" id="modalDesc"></div>
+    <div class="modal-stats" id="modalStats"></div>
+    <div class="modal-features-grid" id="modalFeatures"></div>
+
+    <!-- INTERACTIVE MODULE AREA — shown after clicking Explore -->
+    <div id="moduleInteractive" style="display:none;margin-top:24px;"></div>
+
+    <div id="modalBtnRow" style="display:flex;gap:12px;flex-wrap:wrap;margin-top:8px;">
+      <button class="modal-cta" id="exploreBtn" onclick="launchModuleInteractive()">✦ Launch This Module</button>
+      <button class="modal-cta" style="background:var(--surface2);border:1px solid var(--border);color:var(--text-muted);" onclick="closeModalBtn()">Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- NAV -->
+<nav id="mainNav">
+  <a href="#" class="nav-logo">
+    <div class="nav-logo-dot"></div>
+    Cluster
+  </a>
+  <ul class="nav-links">
+    <li><a href="#problem">Problem</a></li>
+    <li><a href="#modules">Modules</a></li>
+    <li><a href="#counselors">Counselors</a></li>
+    <li><a href="#tech">Tech Stack</a></li>
+    <li><a href="#team">Team</a></li>
+    <li><a href="#demo" class="nav-cta">Try Demo</a></li>
+  </ul>
+  <div class="hamburger" id="hamburger" onclick="toggleMobileNav()">
+    <span></span><span></span><span></span>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section id="hero">
+  <div class="hero-grid-bg"></div>
+  <div class="hero-orb orb1"></div>
+  <div class="hero-orb orb2"></div>
+  <div class="hero-orb orb3"></div>
+
+  <div class="hero-content">
+    <div class="hero-badge">
+      <div class="badge-dot"></div>
+      AI-Powered Career Counseling Platform
+    </div>
+    <h1 class="hero-title">
+      One place,<br>
+      <span class="hero-title-line2">infinite paths.</span>
+    </h1>
+    <p class="hero-tagline">Cluster — Find your direction</p>
+    <p class="hero-desc">
+      Cluster combines AI-driven insights with real human expertise to help students and professionals discover, navigate, and succeed on their ideal career path.
+    </p>
+    <div class="hero-actions">
+      <a href="#demo" class="btn-primary">
+        ✦ Explore Cluster
+      </a>
+      <a href="#modules" class="btn-secondary">
+        View Modules →
+      </a>
+    </div>
+
+    <div class="hero-stats">
+      <div class="stat">
+        <div class="stat-num">5+</div>
+        <div class="stat-label">AI Modules</div>
+      </div>
+      <div class="stat">
+        <div class="stat-num">50K+</div>
+        <div class="stat-label">Career Paths Mapped</div>
+      </div>
+      <div class="stat">
+        <div class="stat-num">98%</div>
+        <div class="stat-label">Match Accuracy</div>
+      </div>
+      <div class="stat">
+        <div class="stat-num">24/7</div>
+        <div class="stat-label">AI Availability</div>
+      </div>
+    </div>
+  </div>
+
+</section>
+
+<div class="divider"></div>
+
+<!-- PROBLEM -->
+<section id="problem" class="reveal">
+  <div class="problem-left">
+    <div class="section-label">01 — Problem Statement</div>
+    <h2 class="section-title">Students are navigating career choices <em>blindly.</em></h2>
+    <p class="section-desc">
+      Millions of students face critical career decisions without personalized guidance. Traditional counseling is expensive, inaccessible, and often too generic to be truly helpful. The gap between potential and opportunity has never been wider.
+    </p>
+
+    <div class="approach-steps" style="margin-top:40px;">
+      <div class="approach-step">
+        <div class="step-num">↗</div>
+        <div class="step-content">
+          <h4>Lack of Personalization</h4>
+          <p>Generic career advice doesn't account for individual strengths, interests, and local job market dynamics.</p>
+        </div>
+      </div>
+      <div class="approach-step">
+        <div class="step-num">↗</div>
+        <div class="step-content">
+          <h4>Access Inequality</h4>
+          <p>Quality career counseling is concentrated in elite institutions and expensive private services.</p>
+        </div>
+      </div>
+      <div class="approach-step">
+        <div class="step-num">↗</div>
+        <div class="step-content">
+          <h4>Information Overload</h4>
+          <p>Too many career options, too little structured guidance leads to paralysis and poor decisions.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="problem-visual">
+    <div class="problem-card reveal">
+      <div class="problem-icon">😟</div>
+      <h4>"I don't know what I want to do after graduation."</h4>
+      <p>Over 70% of college students change their major at least once — often due to poor initial guidance.</p>
+    </div>
+    <div class="problem-card reveal" style="transition-delay:0.1s">
+      <div class="problem-icon">💸</div>
+      <h4>Career counseling costs ₹5,000–₹30,000/session</h4>
+      <p>Premium career coaching is inaccessible to the majority of students from non-affluent backgrounds.</p>
+    </div>
+    <div class="problem-card reveal" style="transition-delay:0.2s">
+      <div class="problem-icon">⏱️</div>
+      <h4>Traditional models don't scale</h4>
+      <p>One counselor can serve only 300–500 students annually — leaving millions without proper support.</p>
+    </div>
+    <div class="problem-card reveal" style="transition-delay:0.3s">
+      <div class="problem-icon">🗺️</div>
+      <h4>Mismatched career choices cost years</h4>
+      <p>Nearly 40% of graduates work in fields unrelated to their degree — a result of uninformed decisions.</p>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- OPPORTUNITY -->
+<section id="opportunity">
+  <div class="section-label">02 — Opportunity</div>
+  <h2 class="section-title">The market is ready for disruption.</h2>
+  <p class="section-desc">The global EdTech and career counseling market presents a massive untapped opportunity for AI-driven, personalized guidance at scale.</p>
+
+  <div class="opp-grid reveal">
+    <div class="opp-item">
+      <div class="opp-number">01</div>
+      <div class="opp-stat">$4.5B</div>
+      <div class="opp-desc">Global career counseling market projected by 2027, growing at 7.2% CAGR annually.</div>
+    </div>
+    <div class="opp-item">
+      <div class="opp-number">02</div>
+      <div class="opp-stat">260M+</div>
+      <div class="opp-desc">Students in India alone making critical education and career decisions each year without proper guidance.</div>
+    </div>
+    <div class="opp-item">
+      <div class="opp-number">03</div>
+      <div class="opp-stat">3%</div>
+      <div class="opp-desc">Only 3% of Indian schools have a dedicated career counselor — creating an enormous service gap.</div>
+    </div>
+    <div class="opp-item">
+      <div class="opp-number">04</div>
+      <div class="opp-stat">85%</div>
+      <div class="opp-desc">Of students prefer AI-assisted guidance combined with human expert validation over traditional methods.</div>
+    </div>
+    <div class="opp-item">
+      <div class="opp-number">05</div>
+      <div class="opp-stat">10X</div>
+      <div class="opp-desc">Cost reduction possible with AI-first approach compared to traditional one-on-one counseling models.</div>
+    </div>
+    <div class="opp-item">
+      <div class="opp-number">06</div>
+      <div class="opp-stat">∞</div>
+      <div class="opp-desc">Cluster's modular AI architecture allows infinite scaling to millions of students simultaneously.</div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- APPROACH -->
+<section id="approach">
+  <div class="approach-left">
+    <div class="section-label">03 — Our Approach</div>
+    <h2 class="section-title">Human wisdom meets machine intelligence.</h2>
+    <p class="section-desc">
+      Cluster uses a hybrid intelligence model — combining real psychological frameworks with AI precision to deliver guidance that's both deeply personal and scientifically grounded.
+    </p>
+
+    <div class="approach-steps">
+      <div class="approach-step reveal">
+        <div class="step-num">01</div>
+        <div class="step-content">
+          <h4>Deep Interest Profiling</h4>
+          <p>Multi-dimensional psychometric assessments map cognitive strengths, behavioral tendencies, and intrinsic motivations using Holland's RIASEC model and MBTI frameworks.</p>
+        </div>
+      </div>
+      <div class="approach-step reveal" style="transition-delay:0.1s">
+        <div class="step-num">02</div>
+        <div class="step-content">
+          <h4>AI-Powered Path Matching</h4>
+          <p>Our NLP-driven matching engine cross-references student profiles against 50,000+ career trajectories to surface the top 10 best-fit paths with confidence scores.</p>
+        </div>
+      </div>
+      <div class="approach-step reveal" style="transition-delay:0.2s">
+        <div class="step-num">03</div>
+        <div class="step-content">
+          <h4>Expert Human Validation</h4>
+          <p>Certified counselors review AI recommendations, add contextual nuance, and provide live guidance sessions — ensuring no student relies on AI alone.</p>
+        </div>
+      </div>
+      <div class="approach-step reveal" style="transition-delay:0.3s">
+        <div class="step-num">04</div>
+        <div class="step-content">
+          <h4>Explainable Outcomes</h4>
+          <p>Every recommendation comes with full transparency — students see exactly WHY a career path was suggested and what evidence supports it.</p>
+        </div>
+      </div>
+      <div class="approach-step reveal" style="transition-delay:0.4s">
+        <div class="step-num">05</div>
+        <div class="step-content">
+          <h4>Continuous Refinement</h4>
+          <p>The system learns from student outcomes, updating its model to improve recommendation accuracy over time through reinforcement learning.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="approach-visual reveal">
+    <div class="section-label" style="margin-bottom:20px;">Process Flow</div>
+    <div class="flow-diagram">
+      <div class="flow-node">
+        <div class="flow-icon" style="background:rgba(108,99,255,0.15)">👤</div>
+        <div>
+          <div class="flow-label">Student Onboards</div>
+          <div class="flow-sub">Profile creation, background data</div>
+        </div>
+      </div>
+      <div class="flow-arrow">↓</div>
+      <div class="flow-node">
+        <div class="flow-icon" style="background:rgba(255,107,157,0.15)">🧠</div>
+        <div>
+          <div class="flow-label">Psychometric Assessment</div>
+          <div class="flow-sub">RIASEC, MBTI, cognitive tests</div>
+        </div>
+      </div>
+      <div class="flow-arrow">↓</div>
+      <div class="flow-node">
+        <div class="flow-icon" style="background:rgba(0,212,170,0.15)">⚡</div>
+        <div>
+          <div class="flow-label">AI Path Matching Engine</div>
+          <div class="flow-sub">NLP model, 50K+ career database</div>
+        </div>
+      </div>
+      <div class="flow-arrow">↓</div>
+      <div class="flow-node">
+        <div class="flow-icon" style="background:rgba(255,167,38,0.15)">🔍</div>
+        <div>
+          <div class="flow-label">Explainable AI Report</div>
+          <div class="flow-sub">Transparent reasoning, confidence scores</div>
+        </div>
+      </div>
+      <div class="flow-arrow">↓</div>
+      <div class="flow-node">
+        <div class="flow-icon" style="background:rgba(41,182,246,0.15)">👩‍💼</div>
+        <div>
+          <div class="flow-label">Human Expert Review</div>
+          <div class="flow-sub">Certified counselor validation</div>
+        </div>
+      </div>
+      <div class="flow-arrow">↓</div>
+      <div class="flow-node" style="border-color:rgba(108,99,255,0.5);background:rgba(108,99,255,0.08)">
+        <div class="flow-icon" style="background:rgba(108,99,255,0.2)">🎯</div>
+        <div>
+          <div class="flow-label" style="color:var(--accent)">Personalized Roadmap</div>
+          <div class="flow-sub">Action steps, college advisor, resources</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- MODULES -->
+<section id="modules">
+  <div class="modules-header">
+    <div class="section-label">04 — Core Modules</div>
+    <h2 class="section-title">Everything you need, <br>in one platform.</h2>
+  </div>
+
+  <div class="modules-grid">
+    <div class="module-card purple reveal" onclick="openModule('career')">
+      <div class="module-icon-wrap">🤖</div>
+      <div class="module-title">AI Career Counselor</div>
+      <p class="module-desc">An intelligent counseling engine that provides personalized career recommendations based on psychometric data, academic history, and market trends.</p>
+      <ul class="module-features">
+        <li>Holland RIASEC-based assessment engine</li>
+        <li>Real-time job market integration</li>
+        <li>Skill gap analysis and learning paths</li>
+        <li>Personalized 5-year career roadmap</li>
+        <li>Strength and weakness profiling</li>
+      </ul>
+      <div class="module-card-arrow">↗</div>
+    </div>
+
+    <div class="module-card pink reveal" style="transition-delay:0.1s" onclick="openModule('interest')">
+      <div class="module-icon-wrap">🧭</div>
+      <div class="module-title">Interest Finder</div>
+      <p class="module-desc">A gamified psychometric tool that identifies deep-seated interests and aptitudes through adaptive questionnaires and behavioral analysis.</p>
+      <ul class="module-features">
+        <li>MBTI & Big Five personality mapping</li>
+        <li>Gamified assessment experience</li>
+        <li>Visual interest spectrum report</li>
+        <li>Subject–career correlation mapping</li>
+        <li>Adaptive difficulty questionnaire</li>
+      </ul>
+      <div class="module-card-arrow">↗</div>
+    </div>
+
+    <div class="module-card teal reveal" style="transition-delay:0.2s" onclick="openModule('chatbot')">
+      <div class="module-icon-wrap">💬</div>
+      <div class="module-title">AI Chatbot</div>
+      <p class="module-desc">A 24/7 conversational AI assistant trained on career counseling data, capable of answering complex questions and guiding students through uncertainty.</p>
+      <ul class="module-features">
+        <li>NLP-powered context retention</li>
+        <li>Career Q&A knowledge base</li>
+        <li>Emotional intelligence responses</li>
+        <li>Multi-language support</li>
+        <li>Escalation to human counselor</li>
+      </ul>
+      <div class="module-card-arrow">↗</div>
+    </div>
+
+    <div class="module-card orange reveal" style="transition-delay:0.1s" onclick="openModule('college')">
+      <div class="module-icon-wrap">🎓</div>
+      <div class="module-title">College Advisor</div>
+      <p class="module-desc">A comprehensive college recommendation system that matches students with institutions based on academic profile, aspirations, location, and financial needs.</p>
+      <ul class="module-features">
+        <li>5,000+ college database (India & Global)</li>
+        <li>Cutoff & entrance exam tracking</li>
+        <li>Scholarship matching engine</li>
+        <li>Application timeline planner</li>
+        <li>Campus culture fit scoring</li>
+      </ul>
+      <div class="module-card-arrow">↗</div>
+    </div>
+
+    <div class="module-card blue reveal" style="transition-delay:0.2s" onclick="openModule('xai')">
+      <div class="module-icon-wrap">🔬</div>
+      <div class="module-title">Explainable AI</div>
+      <p class="module-desc">Complete transparency into every recommendation. Students understand exactly why paths were suggested through visual decision trees and confidence scoring.</p>
+      <ul class="module-features">
+        <li>SHAP-based feature importance</li>
+        <li>Visual decision tree rendering</li>
+        <li>Confidence score breakdown</li>
+        <li>Alternative path comparison</li>
+        <li>Bias detection and fairness audit</li>
+      </ul>
+      <div class="module-card-arrow">↗</div>
+    </div>
+
+    <div class="module-card reveal" style="transition-delay:0.3s; --card-gradient: linear-gradient(135deg, rgba(255,215,0,0.1), transparent); background: var(--surface);" onclick="openModule('expert')">
+      <div class="module-icon-wrap" style="background:rgba(255,215,0,0.15)">👥</div>
+      <div class="module-title">Human Expert Panel</div>
+      <p class="module-desc">Connect with verified professional counselors and psychologists who validate AI output and provide nuanced, empathetic human guidance.</p>
+      <ul class="module-features">
+        <li>Verified expert credentials</li>
+        <li>Live 1:1 video sessions</li>
+        <li>AI recommendation review</li>
+        <li>Follow-up progress tracking</li>
+        <li>Community peer mentoring</li>
+      </ul>
+      <div class="module-card-arrow">↗</div>
+    </div>
+  </div>
+
+  <!-- Interest Finder Demo -->
+  <div class="interest-demo reveal">
+    <div class="interest-title">
+      🧭 Try the Interest Finder
+      <span style="font-family:'Space Mono',monospace;font-size:0.65rem;color:var(--text-muted);font-weight:400;">— Select your interests</span>
+    </div>
+    <div class="interest-tags" id="interestTags">
+      <div class="interest-tag" onclick="selectInterest(this, 'tech')">💻 Technology</div>
+      <div class="interest-tag" onclick="selectInterest(this, 'art')">🎨 Art & Design</div>
+      <div class="interest-tag" onclick="selectInterest(this, 'science')">🔬 Science</div>
+      <div class="interest-tag" onclick="selectInterest(this, 'business')">📊 Business</div>
+      <div class="interest-tag" onclick="selectInterest(this, 'health')">🏥 Healthcare</div>
+      <div class="interest-tag" onclick="selectInterest(this, 'social')">🤝 Social Work</div>
+      <div class="interest-tag" onclick="selectInterest(this, 'law')">⚖️ Law & Policy</div>
+      <div class="interest-tag" onclick="selectInterest(this, 'media')">🎬 Media & Content</div>
+      <div class="interest-tag" onclick="selectInterest(this, 'education')">📚 Education</div>
+      <div class="interest-tag" onclick="selectInterest(this, 'engineering')">⚙️ Engineering</div>
+    </div>
+    <div class="interest-result" id="interestResult">
+      <h4 id="resultTitle">Your Top Career Match</h4>
+      <p id="resultDesc">Based on your selections, Cluster suggests...</p>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- COUNSELORS -->
+<section id="counselors">
+  <div class="section-label">05 — Expert Panel</div>
+  <h2 class="section-title">Meet our verified counselors.</h2>
+  <p class="section-desc">Cluster partners with India's leading career counselors, psychologists, and college advisors to provide human-validated guidance.</p>
+
+  <div class="counselors-grid">
+    <div class="counselor-card reveal">
+      <div class="counselor-avatar" style="background:rgba(108,99,255,0.15);color:#a89cff">🧠</div>
+      <div class="counselor-name">Dr. Anita Sharma</div>
+      <div class="counselor-title">Educational Psychologist</div>
+      <div class="counselor-desc">Ph.D. in Educational Psychology from IIT Delhi. 18 years guiding students in STEM and research careers.</div>
+      <div class="counselor-tag">STEM Careers</div>
+    </div>
+
+    <div class="counselor-card reveal" style="transition-delay:0.1s">
+      <div class="counselor-avatar" style="background:rgba(255,107,157,0.15);color:#ff9ec0">🎯</div>
+      <div class="counselor-name">Vikram Nair</div>
+      <div class="counselor-title">Career Strategist & Coach</div>
+      <div class="counselor-desc">Former HR Director at Infosys. Certified Career Coach (CCF). Expertise in tech and management careers.</div>
+      <div class="counselor-tag">Tech & Management</div>
+    </div>
+
+    <div class="counselor-card reveal" style="transition-delay:0.2s">
+      <div class="counselor-avatar" style="background:rgba(0,212,170,0.15);color:#00d4aa">👩‍💼</div>
+      <div class="counselor-name">Dr. Priya Mehta</div>
+      <div class="counselor-title">Occupational Therapist & Counselor</div>
+      <div class="counselor-desc">Registered OT and certified career counselor. Specializes in neurodiverse students and alternative career paths.</div>
+      <div class="counselor-tag">Neurodiverse Support</div>
+    </div>
+
+    <div class="counselor-card reveal" style="transition-delay:0.3s">
+      <div class="counselor-avatar" style="background:rgba(255,167,38,0.15);color:#ffa726">🏛️</div>
+      <div class="counselor-name">Rajesh Patel</div>
+      <div class="counselor-title">College Admissions Expert</div>
+      <div class="counselor-desc">10+ years in college admissions consulting. Guided 3,000+ students to IITs, NITs, and top international universities.</div>
+      <div class="counselor-tag">College Admissions</div>
+    </div>
+
+    <div class="counselor-card reveal" style="transition-delay:0.1s">
+      <div class="counselor-avatar" style="background:rgba(41,182,246,0.15);color:#29b6f6">🌐</div>
+      <div class="counselor-name">Dr. Sunita Krishnan</div>
+      <div class="counselor-title">Clinical Psychologist</div>
+      <div class="counselor-desc">RCI-registered Clinical Psychologist. Expert in adolescent mental health and career-related anxiety management.</div>
+      <div class="counselor-tag">Mental Wellbeing</div>
+    </div>
+
+    <div class="counselor-card reveal" style="transition-delay:0.2s">
+      <div class="counselor-avatar" style="background:rgba(156,39,176,0.15);color:#ce93d8">💡</div>
+      <div class="counselor-name">Arun Gupta</div>
+      <div class="counselor-title">Entrepreneurship Mentor</div>
+      <div class="counselor-desc">Serial entrepreneur and mentor at IIM-B incubator. Helps students identify and pursue entrepreneurial pathways.</div>
+      <div class="counselor-tag">Entrepreneurship</div>
+    </div>
+
+    <div class="counselor-card reveal" style="transition-delay:0.3s">
+      <div class="counselor-avatar" style="background:rgba(244,67,54,0.15);color:#ef9a9a">⚖️</div>
+      <div class="counselor-name">Adv. Nisha Rao</div>
+      <div class="counselor-title">Legal & Civil Services Advisor</div>
+      <div class="counselor-desc">Practicing advocate and UPSC mentor. Specialized in guiding students toward law, judiciary, and civil services careers.</div>
+      <div class="counselor-tag">Law & UPSC</div>
+    </div>
+
+    <div class="counselor-card reveal" style="transition-delay:0.4s">
+      <div class="counselor-avatar" style="background:rgba(0,150,136,0.15);color:#80cbc4">🎨</div>
+      <div class="counselor-name">Meera Iyer</div>
+      <div class="counselor-title">Creative Arts & Design Counselor</div>
+      <div class="counselor-desc">Former professor at NID Ahmedabad. Guides students in design, fashion, film, and creative technology careers.</div>
+      <div class="counselor-tag">Creative Careers</div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- EXPLAINABLE AI -->
+<section id="xai">
+  <div class="xai-visual reveal">
+    <div class="section-label">Sample Recommendation Breakdown</div>
+    <br>
+    <div class="decision-tree">
+      <div class="dt-node highlight">
+        <span>🎯</span>
+        <div>
+          <div style="color:var(--accent3);font-weight:700">Career Recommendation: UX Designer</div>
+          <div style="font-size:0.68rem;color:var(--text-muted)">Confidence: 94%</div>
+        </div>
+      </div>
+      <div style="font-size:0.7rem;color:var(--text-muted);padding:8px 0 4px 16px">Why this recommendation?</div>
+      <div class="dt-node dt-indent">
+        <span>✅</span>
+        <div>RIASEC: Artistic (A) score 87/100</div>
+      </div>
+      <div class="dt-node dt-indent">
+        <span>✅</span>
+        <div>Investigative (I) score 79/100</div>
+      </div>
+      <div class="dt-node dt-indent">
+        <span>✅</span>
+        <div>Strong spatial reasoning aptitude</div>
+      </div>
+      <div class="dt-node dt-indent">
+        <span>✅</span>
+        <div>Prefers collaborative environment</div>
+      </div>
+      <div style="font-size:0.7rem;color:var(--text-muted);padding:8px 0 4px 16px">Market fit analysis</div>
+      <div class="dt-node dt-indent2">
+        <span>📈</span>
+        <div>UX demand: +23% YoY in India</div>
+      </div>
+      <div class="dt-node dt-indent2">
+        <span>💰</span>
+        <div>Avg. salary: ₹8–25 LPA</div>
+      </div>
+    </div>
+
+    <div style="margin-top:20px;">
+      <div style="font-size:0.75rem;color:var(--text-muted);margin-bottom:8px;font-family:'Space Mono',monospace;">Overall Confidence Score</div>
+      <div class="confidence-bar">
+        <div class="confidence-fill" id="confBar" style="width:0%"></div>
+      </div>
+      <div style="font-family:'Space Mono',monospace;font-size:0.75rem;color:var(--accent3)">94% — High Confidence Match</div>
+    </div>
+  </div>
+
+  <div>
+    <div class="section-label">06 — Explainable AI</div>
+    <h2 class="section-title">Transparency you can trust.</h2>
+    <p class="section-desc">
+      Unlike black-box AI, Cluster shows students exactly how and why each recommendation was made. Every insight is traceable, auditable, and human-understandable.
+    </p>
+
+    <div class="xai-features">
+      <div class="xai-feature reveal">
+        <div class="xai-feature-icon">🔍</div>
+        <div>
+          <h4>SHAP Value Analysis</h4>
+          <p>Shapley additive explanations decompose each AI decision to show which factors (interests, scores, market data) contributed most to the recommendation.</p>
+        </div>
+      </div>
+      <div class="xai-feature reveal" style="transition-delay:0.1s">
+        <div class="xai-feature-icon">🌲</div>
+        <div>
+          <h4>Decision Tree Visualization</h4>
+          <p>Interactive visual decision trees render the exact path the AI took — students can explore "what if" scenarios by toggling inputs.</p>
+        </div>
+      </div>
+      <div class="xai-feature reveal" style="transition-delay:0.2s">
+        <div class="xai-feature-icon">⚖️</div>
+        <div>
+          <h4>Bias & Fairness Auditing</h4>
+          <p>Automated bias detection ensures recommendations aren't influenced by gender, socioeconomic status, or regional stereotypes.</p>
+        </div>
+      </div>
+      <div class="xai-feature reveal" style="transition-delay:0.3s">
+        <div class="xai-feature-icon">📊</div>
+        <div>
+          <h4>Confidence Scoring</h4>
+          <p>Every recommendation includes a calibrated confidence percentage and a breakdown of the evidence supporting it.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- TECH STACK -->
+<section id="tech">
+  <div class="tech-header reveal">
+    <div>
+      <div class="section-label">07 — Technology Stack</div>
+      <h2 class="section-title">Built for scale, accuracy, and speed.</h2>
+    </div>
+    <p class="section-desc" style="max-width:100%">
+      Cluster is built on a modern, cloud-native stack optimized for AI inference, real-time interactions, and high availability — capable of serving millions of students concurrently.
+    </p>
+  </div>
+
+  <div class="tech-grid">
+    <div class="tech-category reveal">
+      <div class="tech-cat-title">Frontend</div>
+      <div class="tech-items">
+        <div class="tech-pill"><div class="tech-dot" style="background:#61dafb"></div>React.js</div>
+        <div class="tech-pill"><div class="tech-dot" style="background:#ff6347"></div>Next.js</div>
+        <div class="tech-pill"><div class="tech-dot" style="background:#38bdf8"></div>Tailwind CSS</div>
+        <div class="tech-pill"><div class="tech-dot" style="background:#f7df1e"></div>TypeScript</div>
+        <div class="tech-pill"><div class="tech-dot" style="background:#ff6b9d"></div>Framer Motion</div>
+        <div class="tech-pill"><div class="tech-dot" style="background:#88c0d0"></div>D3.js (Viz)</div>
+      </div>
+    </div>
+
+    <div class="tech-category reveal" style="transition-delay:0.1s">
+      <div class="tech-cat-title">Backend</div>
+      <div class="tech-items">
+        <div class="tech-pill"><div class="tech-dot" style="background:#68a063"></div>Node.js</div>
+        <div class="tech-pill"><div class="tech-dot" style="background:#00b09b"></div>FastAPI (Python)</div>
+        <div class="tech-pill"><div class="tech-dot" style="background:#ff6b35"></div>Django</div>
+        <div class="tech-pill"><div class="tech-dot" style="background:#336791"></div>PostgreSQL</div>
+        <div class="tech-pill"><div class="tech-dot" style="background:#dc382d"></div>Redis</div>
+        <div class="tech-pill"><div class="tech-dot" style="background:#47a248"></div>MongoDB</div>
+      </div>
+    </div>
+
+    <div class="tech-category reveal" style="transition-delay:0.2s">
+      <div class="tech-cat-title">AI & Machine Learning</div>
+      <div class="tech-items">
+        <div class="tech-pill"><div class="tech-dot" style="background:#ff6f00"></div>TensorFlow</div>
+        <div class="tech-pill"><div class="tech-dot" style="background:#ee4c2c"></div>PyTorch</div>
+        <div class="tech-pill"><div class="tech-dot" style="background:#7952b3"></div>Hugging Face</div>
+        <div class="tech-pill"><div class="tech-dot" style="background:#00b4d8"></div>SHAP (XAI)</div>
+        <div class="tech-pill"><div class="tech-dot" style="background:#f9a03c"></div>scikit-learn</div>
+        <div class="tech-pill"><div class="tech-dot" style="background:#ffffff20"></div>LangChain</div>
+        <div class="tech-pill"><div class="tech-dot" style="background:#10a37f"></div>OpenAI GPT</div>
+      </div>
+    </div>
+
+    <div class="tech-category reveal" style="transition-delay:0.3s">
+      <div class="tech-cat-title">Cloud & Infrastructure</div>
+      <div class="tech-items">
+        <div class="tech-pill"><div class="tech-dot" style="background:#ff9900"></div>AWS (EC2, S3, RDS)</div>
+        <div class="tech-pill"><div class="tech-dot" style="background:#326ce5"></div>Kubernetes</div>
+        <div class="tech-pill"><div class="tech-dot" style="background:#2496ed"></div>Docker</div>
+        <div class="tech-pill"><div class="tech-dot" style="background:#f05033"></div>GitHub Actions</div>
+        <div class="tech-pill"><div class="tech-dot" style="background:#ff4785"></div>Vercel</div>
+        <div class="tech-pill"><div class="tech-dot" style="background:#00acd7"></div>Nginx</div>
+        <div class="tech-pill"><div class="tech-dot" style="background:#e01e5a"></div>Terraform</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- ARCHITECTURE -->
+<section id="architecture">
+  <div class="arch-header reveal">
+    <div class="section-label">08 — System Architecture</div>
+    <h2 class="section-title">How Cluster works under the hood.</h2>
+    <p class="section-desc" style="max-width:600px;margin:0 auto">A layered, microservices architecture designed for resilience, real-time performance, and modular AI inference.</p>
+  </div>
+
+  <div class="arch-diagram reveal">
+    <div class="arch-layers">
+
+      <div class="arch-layer">
+        <div class="arch-layer-title">Client Layer</div>
+        <div class="arch-nodes">
+          <div class="arch-node">🌐 Web App (React/Next.js)</div>
+          <div class="arch-node">📱 Mobile App (React Native)</div>
+          <div class="arch-node">🔌 REST API Clients</div>
+        </div>
+      </div>
+
+      <div class="arch-arrow-row">↓↓↓</div>
+
+      <div class="arch-layer">
+        <div class="arch-layer-title">API Gateway & Auth Layer</div>
+        <div class="arch-nodes">
+          <div class="arch-node primary">🔐 Auth Service (JWT/OAuth2)</div>
+          <div class="arch-node primary">🚪 API Gateway (Nginx)</div>
+          <div class="arch-node primary">📊 Rate Limiter (Redis)</div>
+          <div class="arch-node primary">📝 Request Logger</div>
+        </div>
+      </div>
+
+      <div class="arch-arrow-row">↓↓↓</div>
+
+      <div class="arch-layer">
+        <div class="arch-layer-title">Core Microservices</div>
+        <div class="arch-nodes">
+          <div class="arch-node accent2">🧠 Counseling Engine</div>
+          <div class="arch-node accent2">🧭 Interest Finder Service</div>
+          <div class="arch-node accent2">💬 Chatbot Service</div>
+          <div class="arch-node accent2">🎓 College Advisor</div>
+          <div class="arch-node accent2">👥 Expert Matching</div>
+          <div class="arch-node accent2">📋 Profile Service</div>
+        </div>
+      </div>
+
+      <div class="arch-arrow-row">↓↓↓</div>
+
+      <div class="arch-layer">
+        <div class="arch-layer-title">AI Inference Layer</div>
+        <div class="arch-nodes">
+          <div class="arch-node accent3">🤖 NLP Model (LLM)</div>
+          <div class="arch-node accent3">🔬 XAI Engine (SHAP)</div>
+          <div class="arch-node accent3">🌲 Decision Tree Classifier</div>
+          <div class="arch-node accent3">📈 Recommendation Engine</div>
+          <div class="arch-node accent3">🔄 Feedback Loop (RL)</div>
+        </div>
+      </div>
+
+      <div class="arch-arrow-row">↓↓↓</div>
+
+      <div class="arch-layer">
+        <div class="arch-layer-title">Data Layer</div>
+        <div class="arch-nodes">
+          <div class="arch-node">🗄️ PostgreSQL (User Data)</div>
+          <div class="arch-node">📦 MongoDB (Career DB)</div>
+          <div class="arch-node">⚡ Redis (Cache/Sessions)</div>
+          <div class="arch-node">🗂️ S3 (File Storage)</div>
+          <div class="arch-node">📊 Analytics (Mixpanel)</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- DEPLOYMENT -->
+<section id="deployment">
+  <div>
+    <div class="section-label">09 — Deployment & Scalability</div>
+    <h2 class="section-title">Built to scale to millions.</h2>
+    <p class="section-desc">
+      Cluster's cloud-native infrastructure auto-scales to meet demand, ensuring sub-200ms response times even during peak usage, with 99.9% uptime SLA.
+    </p>
+
+    <div class="deploy-cards">
+      <div class="deploy-card reveal">
+        <div class="deploy-card-icon">☁️</div>
+        <h4>Cloud-Native on AWS</h4>
+        <p>Multi-region AWS deployment with auto-scaling groups, ensuring global availability.</p>
+      </div>
+      <div class="deploy-card reveal" style="transition-delay:0.1s">
+        <div class="deploy-card-icon">🐳</div>
+        <h4>Containerized (Docker + K8s)</h4>
+        <p>Each microservice runs in isolated containers, orchestrated by Kubernetes for zero-downtime deploys.</p>
+      </div>
+      <div class="deploy-card reveal" style="transition-delay:0.2s">
+        <div class="deploy-card-icon">⚡</div>
+        <h4>CDN-Accelerated Frontend</h4>
+        <p>Static assets served via CloudFront CDN with edge nodes across 50+ locations globally.</p>
+      </div>
+      <div class="deploy-card reveal" style="transition-delay:0.3s">
+        <div class="deploy-card-icon">🔄</div>
+        <h4>CI/CD Pipeline</h4>
+        <p>GitHub Actions automates testing, building, and deployment — enabling multiple daily releases safely.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="scale-visual reveal">
+    <div class="section-label" style="margin-bottom:24px;">Scalability Metrics</div>
+
+    <div class="scale-metric">
+      <div class="scale-label">Concurrent Users</div>
+      <div class="scale-value">500,000+</div>
+    </div>
+    <div class="scale-bar"><div class="scale-fill" data-width="95%" style="width:0%"></div></div>
+
+    <div class="scale-metric">
+      <div class="scale-label">API Response Time</div>
+      <div class="scale-value">< 180ms</div>
+    </div>
+    <div class="scale-bar"><div class="scale-fill" data-width="88%" style="width:0%"></div></div>
+
+    <div class="scale-metric">
+      <div class="scale-label">Uptime SLA</div>
+      <div class="scale-value">99.9%</div>
+    </div>
+    <div class="scale-bar"><div class="scale-fill" data-width="99%" style="width:0%"></div></div>
+
+    <div class="scale-metric">
+      <div class="scale-label">AI Inference Speed</div>
+      <div class="scale-value">< 2s</div>
+    </div>
+    <div class="scale-bar"><div class="scale-fill" data-width="82%" style="width:0%"></div></div>
+
+    <div class="scale-metric">
+      <div class="scale-label">Data Points Processed / Day</div>
+      <div class="scale-value">10M+</div>
+    </div>
+    <div class="scale-bar"><div class="scale-fill" data-width="76%" style="width:0%"></div></div>
+
+    <div style="margin-top:28px;padding:20px;background:rgba(0,212,170,0.06);border:1px solid rgba(0,212,170,0.15);border-radius:14px;">
+      <div style="font-family:'Space Mono',monospace;font-size:0.7rem;color:var(--accent3);margin-bottom:8px;">DEPLOYMENT STATUS</div>
+      <div style="display:flex;align-items:center;gap:8px;font-size:0.84rem;color:var(--text)">
+        <div class="badge-dot" style="background:var(--accent3)"></div>
+        All systems operational — v2.4.1
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- AI CHATBOT DEMO -->
+<section id="demo">
+  <div class="demo-inner">
+    <div>
+      <div class="section-label">Live Demo</div>
+      <h2 class="section-title">Try our AI Career Chatbot.</h2>
+      <p class="section-desc">
+        Ask Cluster anything about career paths, college admissions, entrance exams, or skill development — available 24/7, instantly.
+      </p>
+      <div style="margin-top:36px;display:flex;flex-direction:column;gap:14px;">
+        <div style="font-family:'Space Mono',monospace;font-size:0.68rem;color:var(--text-muted);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:4px;">Try asking:</div>
+        <div class="interest-tag" style="cursor:pointer;display:inline-block;width:fit-content" onclick="fillChat('What career suits someone who loves math and design?')">💡 What career suits math + design?</div>
+        <div class="interest-tag" style="cursor:pointer;display:inline-block;width:fit-content" onclick="fillChat('Which colleges should I target for CSE with 95% in boards?')">🎓 Top colleges for CSE with 95%?</div>
+        <div class="interest-tag" style="cursor:pointer;display:inline-block;width:fit-content" onclick="fillChat('How do I know if I should pursue engineering or medicine?')">🔬 Engineering vs Medicine guidance</div>
+      </div>
+    </div>
+
+    <div class="chat-window reveal">
+      <div class="chat-header">
+        <div class="chat-avatar">🤖</div>
+        <div>
+          <div class="chat-status">Cluster AI</div>
+          <div class="chat-online"><div class="online-dot"></div>Online — Powered by Cluster NLP</div>
+        </div>
+      </div>
+      <div class="chat-body" id="chatBody">
+        <div class="chat-msg bot">
+          <div class="chat-bubble">
+            👋 Hi! I'm Cluster AI, your personal career guide. I can help you explore career paths, find the right college, understand your strengths, and build your roadmap. What's on your mind?
+          </div>
+        </div>
+      </div>
+      <div class="chat-input-area">
+        <input type="text" class="chat-input" id="chatInput" placeholder="Ask me anything about your career..." onkeydown="if(event.key==='Enter') sendChat()">
+        <button class="chat-send" onclick="sendChat()">➤</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- TEAM -->
+<section id="team">
+  <div class="team-header">
+    <div class="section-label">The Team</div>
+    <h2 class="section-title">The minds behind Cluster.</h2>
+    <p class="section-desc" style="max-width:480px;margin:0 auto">A passionate multidisciplinary team building the future of career guidance through AI and human expertise.</p>
+  </div>
+
+  <div class="team-grid">
+    <div class="team-card reveal">
+      <div class="team-avatar">
+        <div class="team-avatar-ring"></div>
+        <div class="team-avatar-inner" style="background:linear-gradient(135deg,rgba(108,99,255,0.2),rgba(255,107,157,0.2))">
+          <span style="font-size:1.6rem">⚡</span>
+        </div>
+      </div>
+      <div class="team-name">Viransh Jain</div>
+      <div class="team-role">Lead Developer</div>
+      <div class="team-role-badge">🔧 Backend + Frontend</div>
+    </div>
+
+    <div class="team-card reveal" style="transition-delay:0.1s">
+      <div class="team-avatar">
+        <div class="team-avatar-ring"></div>
+        <div class="team-avatar-inner" style="background:linear-gradient(135deg,rgba(0,212,170,0.2),rgba(41,182,246,0.2))">
+          <span style="font-size:1.6rem">⚙️</span>
+        </div>
+      </div>
+      <div class="team-name">Dhruvika Varshney</div>
+      <div class="team-role">Backend Developer</div>
+      <div class="team-role-badge">🖧 APIs & Infrastructure</div>
+    </div>
+
+    <div class="team-card reveal" style="transition-delay:0.2s">
+      <div class="team-avatar">
+        <div class="team-avatar-ring"></div>
+        <div class="team-avatar-inner" style="background:linear-gradient(135deg,rgba(255,107,157,0.2),rgba(255,167,38,0.2))">
+          <span style="font-size:1.6rem">🎨</span>
+        </div>
+      </div>
+      <div class="team-name">M Samyuktha</div>
+      <div class="team-role">Frontend Developer</div>
+      <div class="team-role-badge">✨ UI/UX Design</div>
+    </div>
+
+    <div class="team-card reveal" style="transition-delay:0.3s">
+      <div class="team-avatar">
+        <div class="team-avatar-ring"></div>
+        <div class="team-avatar-inner" style="background:linear-gradient(135deg,rgba(255,215,0,0.2),rgba(108,99,255,0.2))">
+          <span style="font-size:1.6rem">🔭</span>
+        </div>
+      </div>
+      <div class="team-name">Jothirvishal R</div>
+      <div class="team-role">Technology Advisor</div>
+      <div class="team-role-badge">💡 AI Strategy</div>
+    </div>
+
+    <div class="team-card reveal" style="transition-delay:0.4s">
+      <div class="team-avatar">
+        <div class="team-avatar-ring"></div>
+        <div class="team-avatar-inner" style="background:linear-gradient(135deg,rgba(0,212,170,0.2),rgba(255,107,157,0.2))">
+          <span style="font-size:1.6rem">📊</span>
+        </div>
+      </div>
+      <div class="team-name">D Supriya Reddy</div>
+      <div class="team-role">Data Provider</div>
+      <div class="team-role-badge">🗃️ Data & Research</div>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-brand">
+    <a href="#" class="nav-logo" style="text-decoration:none;margin-bottom:16px;">
+      <div class="nav-logo-dot"></div>
+      Cluster
+    </a>
+    <p>One place, infinite paths. AI-powered career counseling that combines machine intelligence with human wisdom to guide every student toward their best future.</p>
+    <div style="margin-top:20px;display:flex;gap:12px;">
+      <div class="tech-pill" style="cursor:pointer">🐦 Twitter</div>
+      <div class="tech-pill" style="cursor:pointer">💼 LinkedIn</div>
+      <div class="tech-pill" style="cursor:pointer">📧 Email</div>
+    </div>
+  </div>
+
+  <div class="footer-col">
+    <h5>Platform</h5>
+    <ul class="footer-links">
+      <li><a href="#modules">Career Counselor</a></li>
+      <li><a href="#modules">Interest Finder</a></li>
+      <li><a href="#modules">AI Chatbot</a></li>
+      <li><a href="#modules">College Advisor</a></li>
+      <li><a href="#xai">Explainable AI</a></li>
+    </ul>
+  </div>
+
+  <div class="footer-col">
+    <h5>Company</h5>
+    <ul class="footer-links">
+      <li><a href="#problem">About Us</a></li>
+      <li><a href="#team">Our Team</a></li>
+      <li><a href="#counselors">Expert Panel</a></li>
+      <li><a href="#">Blog</a></li>
+      <li><a href="#">Careers</a></li>
+    </ul>
+  </div>
+
+  <div class="footer-col">
+    <h5>Resources</h5>
+    <ul class="footer-links">
+      <li><a href="#tech">Tech Stack</a></li>
+      <li><a href="#architecture">Architecture</a></li>
+      <li><a href="#">API Docs</a></li>
+      <li><a href="#">Privacy Policy</a></li>
+      <li><a href="#">Terms of Use</a></li>
+    </ul>
+  </div>
+</footer>
+
+<div class="footer-bottom">
+  <p>© 2025 Cluster — <span>One place, infinite paths.</span> Built with ♥ by the Cluster Team.</p>
+  <p style="font-family:'Space Mono',monospace;font-size:0.7rem;">v2.4.1 — All systems operational</p>
+</div>
+
+<script>
+// =====================
+// CUSTOM CURSOR
+// =====================
+const dot = document.getElementById('cursor-dot');
+const ring = document.getElementById('cursor-ring');
+let mouseX = 0, mouseY = 0, ringX = 0, ringY = 0;
+
+document.addEventListener('mousemove', e => {
+  mouseX = e.clientX; mouseY = e.clientY;
+  dot.style.left = mouseX + 'px';
+  dot.style.top = mouseY + 'px';
+});
+
+(function animateRing() {
+  ringX += (mouseX - ringX) * 0.12;
+  ringY += (mouseY - ringY) * 0.12;
+  ring.style.left = ringX + 'px';
+  ring.style.top = ringY + 'px';
+  requestAnimationFrame(animateRing);
+})();
+
+document.querySelectorAll('a, button, .module-card, .interest-tag, .tech-pill, .counselor-card, .team-card, .flow-node, .arch-node, .problem-card, .opp-item, .deploy-card, [onclick]').forEach(el => {
+  el.addEventListener('mouseenter', () => document.body.classList.add('cursor-hover'));
+  el.addEventListener('mouseleave', () => document.body.classList.remove('cursor-hover'));
+});
+
+document.addEventListener('mousedown', () => document.body.classList.add('cursor-click'));
+document.addEventListener('mouseup', () => document.body.classList.remove('cursor-click'));
+document.addEventListener('mouseleave', () => { dot.style.opacity='0'; ring.style.opacity='0'; });
+document.addEventListener('mouseenter', () => { dot.style.opacity='1'; ring.style.opacity='1'; });
+
+// =====================
+// SCROLL REVEAL
+// =====================
+const observer = new IntersectionObserver(entries => entries.forEach(el => {
+  if (el.isIntersecting) el.target.classList.add('visible');
+}), { threshold: 0.1, rootMargin: '0px 0px -40px 0px' });
+document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+
+const scaleObserver = new IntersectionObserver(entries => entries.forEach(entry => {
+  if (entry.isIntersecting) entry.target.style.width = entry.target.getAttribute('data-width');
+}), { threshold: 0.3 });
+document.querySelectorAll('.scale-fill[data-width]').forEach(bar => scaleObserver.observe(bar));
+
+const confBar = document.getElementById('confBar');
+if (confBar) new IntersectionObserver(entries => entries.forEach(e => {
+  if (e.isIntersecting) setTimeout(() => { confBar.style.width='94%'; confBar.style.transition='width 2s ease'; }, 300);
+}), { threshold: 0.3 }).observe(confBar);
+
+// =====================
+// MOBILE NAV
+// =====================
+function toggleMobileNav() { document.body.classList.toggle('nav-mobile-open'); }
+document.querySelectorAll('.nav-links a').forEach(l => l.addEventListener('click', () => document.body.classList.remove('nav-mobile-open')));
+window.addEventListener('scroll', () => {
+  document.getElementById('mainNav').style.background = window.scrollY > 80 ? 'rgba(5,5,10,0.95)' : 'rgba(5,5,10,0.8)';
+});
+
+// =====================
+// MODULE DATA
+// =====================
+const moduleData = {
+  career: {
+    icon:'🤖', color:'rgba(108,99,255,0.15)', border:'rgba(108,99,255,0.3)',
+    subtitle:'Core Module 01', title:'AI Career Counselor',
+    desc:'Our flagship AI engine analyzes your psychometric profile, academic record, skills, and real-time market data to generate a deeply personalized career roadmap. Powered by NLP and reinforcement learning, it gets smarter with every interaction.',
+    stats:[{num:'50K+',label:'Career Paths'},{num:'94%',label:'Match Accuracy'},{num:'< 2s',label:'Analysis Time'}],
+    features:[
+      {icon:'🧠',title:'RIASEC Profiling',desc:'Full Holland Code assessment mapping your Realistic, Investigative, Artistic, Social, Enterprising & Conventional traits.'},
+      {icon:'📈',title:'Live Market Data',desc:'Real-time job demand, salary trends, and growth projections from LinkedIn, NASSCOM & government data.'},
+      {icon:'🗺️',title:'5-Year Roadmap',desc:'Generates a step-by-step action plan: courses to take, skills to build, milestones to hit.'},
+      {icon:'⚖️',title:'Skills Gap Analysis',desc:'Identifies the exact gap between where you are and your target role — with curated resources to close it.'},
+    ]
+  },
+  interest: {
+    icon:'🧭', color:'rgba(255,107,157,0.15)', border:'rgba(255,107,157,0.3)',
+    subtitle:'Core Module 02', title:'Interest Finder',
+    desc:'Discover what truly drives you through a gamified, adaptive psychometric experience. Maps your personality using Big Five, MBTI, and behavioral analysis.',
+    stats:[{num:'40+',label:'Dimensions Mapped'},{num:'12min',label:'Assessment Time'},{num:'99%',label:'Completion Rate'}],
+    features:[
+      {icon:'🎮',title:'Gamified Experience',desc:'Scenario-based questions, drag-and-drop rankings, and visual preference selections.'},
+      {icon:'🌈',title:'Interest Spectrum Report',desc:'A visual report showing your interest intensity across 10 career domains.'},
+      {icon:'🔗',title:'Subject–Career Mapping',desc:'Links your current subjects and grades directly to relevant career trajectories.'},
+      {icon:'🔄',title:'Adaptive Difficulty',desc:'Questions adjust dynamically based on your responses for precise profiling.'},
+    ]
+  },
+  chatbot: {
+    icon:'💬', color:'rgba(0,212,170,0.15)', border:'rgba(0,212,170,0.3)',
+    subtitle:'Core Module 03', title:'AI Chatbot',
+    desc:'A 24/7 conversational career guide trained on thousands of counseling sessions, entrance exam data, and career outcome records.',
+    stats:[{num:'24/7',label:'Available'},{num:'10K+',label:'Q&A Pairs'},{num:'8',label:'Languages'}],
+    features:[
+      {icon:'🗣️',title:'Natural Conversation',desc:'Context-aware NLP that remembers what you said earlier and gives coherent responses.'},
+      {icon:'🎯',title:'Direct Answers',desc:'No deflections — the bot answers your question first, then offers more depth.'},
+      {icon:'🌐',title:'Multi-Language',desc:'Responds in Hindi, Tamil, Telugu, Malayalam, Marathi, Bengali, Kannada, and English.'},
+      {icon:'🔁',title:'Human Escalation',desc:'Seamlessly routes complex cases to a live certified counselor.'},
+    ]
+  },
+  college: {
+    icon:'🎓', color:'rgba(255,167,38,0.15)', border:'rgba(255,167,38,0.3)',
+    subtitle:'Core Module 04', title:'College Advisor',
+    desc:'Navigate India\'s complex college landscape with AI precision. Cross-references your profile against 5,000+ colleges across India and globally.',
+    stats:[{num:'5000+',label:'Colleges'},{num:'₹2Cr+',label:'Scholarships Found'},{num:'98%',label:'Admission Accuracy'}],
+    features:[
+      {icon:'🔍',title:'Smart Matching',desc:'AI ranks colleges by compatibility score — factoring marks, entrance scores, location, and goals.'},
+      {icon:'📅',title:'Application Timeline',desc:'Auto-generates a calendar of deadlines, exam dates, and document requirements.'},
+      {icon:'💰',title:'Scholarship Finder',desc:'Matches you with 500+ merit and need-based scholarships.'},
+      {icon:'🏛️',title:'Campus Culture Score',desc:'Uses alumni reviews and placement data to rate each college\'s fit for your personality.'},
+    ]
+  },
+  xai: {
+    icon:'🔬', color:'rgba(41,182,246,0.15)', border:'rgba(41,182,246,0.3)',
+    subtitle:'Core Module 05', title:'Explainable AI',
+    desc:'Every AI recommendation comes with a full transparency report — showing the exact data points, weights, and reasoning behind each career suggestion.',
+    stats:[{num:'100%',label:'Traceable'},{num:'SHAP',label:'XAI Framework'},{num:'0',label:'Hidden Biases'}],
+    features:[
+      {icon:'📊',title:'SHAP Value Breakdown',desc:'Shows which inputs contributed most to each recommendation.'},
+      {icon:'🌲',title:'Visual Decision Trees',desc:'Interactive tree diagrams let you explore "what if" scenarios.'},
+      {icon:'🎯',title:'Confidence Scoring',desc:'Each recommendation shows a calibrated confidence % with supporting evidence.'},
+      {icon:'⚖️',title:'Fairness Audit',desc:'Automated bias checks ensure gender and socioeconomic factors never skew results.'},
+    ]
+  },
+  expert: {
+    icon:'👥', color:'rgba(255,215,0,0.15)', border:'rgba(255,215,0,0.3)',
+    subtitle:'Core Module 06', title:'Human Expert Panel',
+    desc:'Connect with verified, certified counselors and psychologists who review your AI recommendations and provide emotional support.',
+    stats:[{num:'50+',label:'Verified Experts'},{num:'4.9★',label:'Avg. Rating'},{num:'3000+',label:'Students Guided'}],
+    features:[
+      {icon:'🎥',title:'Live 1:1 Sessions',desc:'Book 30-60 minute video sessions with experts in your area of interest.'},
+      {icon:'✅',title:'AI Recommendation Review',desc:'Counselors review your Cluster report and add human context.'},
+      {icon:'📋',title:'Progress Tracking',desc:'Your counselor tracks your progress over months and adjusts the plan.'},
+      {icon:'🤝',title:'Peer Mentoring',desc:'Connect with seniors and alumni who walked the path you\'re considering.'},
+    ]
+  }
+};
+
+let currentModule = null;
+
+function openModule(key) {
+  const d = moduleData[key];
+  if (!d) return;
+  currentModule = key;
+
+  document.getElementById('modalIcon').textContent = d.icon;
+  document.getElementById('modalIcon').style.cssText = `background:${d.color};border:1px solid ${d.border};`;
+  document.getElementById('modalSubtitle').textContent = d.subtitle;
+  document.getElementById('modalTitle').textContent = d.title;
+  document.getElementById('modalDesc').textContent = d.desc;
+  document.getElementById('modalStats').innerHTML = d.stats.map(s=>`<div class="modal-stat"><div class="modal-stat-num">${s.num}</div><div class="modal-stat-label">${s.label}</div></div>`).join('');
+  document.getElementById('modalFeatures').innerHTML = d.features.map(f=>`<div class="modal-feature-item"><div class="modal-feature-icon">${f.icon}</div><div><h5>${f.title}</h5><p>${f.desc}</p></div></div>`).join('');
+  document.getElementById('moduleInteractive').style.display = 'none';
+  document.getElementById('moduleInteractive').innerHTML = '';
+  document.getElementById('exploreBtn').style.display = 'inline-flex';
+  document.getElementById('exploreBtn').textContent = '✦ Launch This Module';
+
+  document.getElementById('moduleModal').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeModal(e) { if (e.target === document.getElementById('moduleModal')) closeModalBtn(); }
+function closeModalBtn() { document.getElementById('moduleModal').classList.remove('open'); document.body.style.overflow = ''; }
+document.addEventListener('keydown', e => { if (e.key==='Escape') closeModalBtn(); });
+
+// =====================
+// LIVE MODULE INTERACTIONS
+// =====================
+function launchModuleInteractive() {
+  const area = document.getElementById('moduleInteractive');
+  area.style.display = 'block';
+  document.getElementById('exploreBtn').style.display = 'none';
+  document.getElementById('modalContent').scrollTop = 999;
+
+  if (currentModule === 'career') {
+    area.innerHTML = `
+      <div class="module-live">
+        <h4>🤖 AI Career Counselor — Live Demo</h4>
+        <input class="live-input" id="cc_name" placeholder="Your name (e.g. Arjun)">
+        <select class="live-select" id="cc_stream">
+          <option value="">Select your stream</option>
+          <option>Science (PCM)</option>
+          <option>Science (PCB)</option>
+          <option>Commerce</option>
+          <option>Arts / Humanities</option>
+          <option>Working Professional</option>
+        </select>
+        <input class="live-input" id="cc_interest" placeholder="Your top interest (e.g. coding, design, law...)">
+        <button class="live-btn" onclick="runCareerCounselor()">🚀 Generate My Career Roadmap</button>
+        <div class="live-result" id="cc_result"></div>
+      </div>`;
+  } else if (currentModule === 'interest') {
+    area.innerHTML = `
+      <div class="module-live">
+        <h4>🧭 Interest Finder — Personality Assessment</h4>
+        <p style="font-size:0.82rem;color:var(--text-muted);margin-bottom:16px;">Answer 3 quick questions to see your RIASEC profile:</p>
+        <select class="live-select" id="if_q1"><option value="">1. In your free time you prefer to...</option><option>Build or fix things</option><option>Research and analyze</option><option>Create art or music</option><option>Help others</option><option>Lead projects</option><option>Organize data</option></select>
+        <select class="live-select" id="if_q2"><option value="">2. Your best skill is...</option><option>Hands-on work</option><option>Critical thinking</option><option>Creativity</option><option>Communication</option><option>Persuasion</option><option>Detail & accuracy</option></select>
+        <select class="live-select" id="if_q3"><option value="">3. Ideal work environment...</option><option>Outdoors / labs</option><option>Research lab / library</option><option>Studio / open space</option><option>With people / community</option><option>Office / leadership role</option><option>Structured / systematic</option></select>
+        <button class="live-btn" onclick="runInterestFinder()">🌈 Show My Interest Profile</button>
+        <div class="live-result" id="if_result"></div>
+      </div>`;
+  } else if (currentModule === 'chatbot') {
+    area.innerHTML = `
+      <div class="module-live" style="padding:0;overflow:hidden;">
+        <div style="padding:16px 20px;border-bottom:1px solid var(--border);background:var(--bg);display:flex;align-items:center;gap:12px;">
+          <div style="width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent2));display:flex;align-items:center;justify-content:center;">💬</div>
+          <div>
+            <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:0.88rem;">Cluster AI</div>
+            <div style="font-size:0.7rem;color:var(--accent3);display:flex;align-items:center;gap:5px;"><span style="width:5px;height:5px;background:var(--accent3);border-radius:50%;display:inline-block;animation:pulse 1.5s infinite"></span>Online</div>
+          </div>
+        </div>
+        <div id="modal_chatBody" style="padding:16px;min-height:180px;max-height:260px;overflow-y:auto;display:flex;flex-direction:column;gap:12px;">
+          <div style="display:flex;gap:8px;"><div style="padding:10px 14px;background:var(--surface);border:1px solid var(--border);border-radius:14px;border-bottom-left-radius:3px;font-size:0.82rem;line-height:1.5;">Hi! Ask me anything about careers, colleges, exams, or your future. I give direct answers — no fluff! 🎯</div></div>
+        </div>
+        <div style="padding:12px 16px;border-top:1px solid var(--border);display:flex;gap:10px;">
+          <input id="modal_chatInput" class="live-input" style="margin:0;flex:1;" placeholder="Ask me anything..." onkeydown="if(event.key==='Enter')sendModalChat()">
+          <button class="live-btn" style="width:auto;padding:10px 18px;" onclick="sendModalChat()">➤</button>
+        </div>
+      </div>`;
+  } else if (currentModule === 'college') {
+    area.innerHTML = `
+      <div class="module-live">
+        <h4>🎓 College Advisor — Find Your Best Fit</h4>
+        <select class="live-select" id="ca_course"><option value="">Select course interest</option><option>Computer Science / IT</option><option>Mechanical Engineering</option><option>Medical / MBBS</option><option>Commerce / BBA / MBA</option><option>Design / Architecture</option><option>Law</option><option>Arts / Humanities</option></select>
+        <input class="live-input" id="ca_score" placeholder="Your board % or entrance rank (e.g. 92% or JEE 8000)">
+        <select class="live-select" id="ca_pref"><option value="">Location preference</option><option>North India</option><option>South India</option><option>West India</option><option>East India</option><option>Any / Open</option></select>
+        <button class="live-btn" onclick="runCollegeAdvisor()">🏛️ Find My Top Colleges</button>
+        <div class="live-result" id="ca_result"></div>
+      </div>`;
+  } else if (currentModule === 'xai') {
+    area.innerHTML = `
+      <div class="module-live">
+        <h4>🔬 Explainable AI — See How We Decide</h4>
+        <p style="font-size:0.82rem;color:var(--text-muted);margin-bottom:16px;">Enter a career and we'll show you exactly how Cluster's AI would evaluate it:</p>
+        <select class="live-select" id="xai_career"><option value="">Select a career to analyze</option><option>Software Engineer</option><option>UX Designer</option><option>Data Scientist</option><option>Doctor (MBBS)</option><option>IAS Officer</option><option>Chartered Accountant</option><option>Architect</option></select>
+        <button class="live-btn" onclick="runXAI()">🔍 Show AI Reasoning</button>
+        <div class="live-result" id="xai_result"></div>
+      </div>`;
+  } else if (currentModule === 'expert') {
+    area.innerHTML = `
+      <div class="module-live">
+        <h4>👥 Book an Expert Session</h4>
+        <input class="live-input" id="exp_name" placeholder="Your name">
+        <select class="live-select" id="exp_topic"><option value="">What do you need help with?</option><option>Career path confusion</option><option>College selection</option><option>Exam strategy (JEE/NEET/UPSC)</option><option>Career switch / abroad</option><option>Mental health & career anxiety</option><option>Entrepreneurship guidance</option></select>
+        <select class="live-select" id="exp_expert"><option value="">Choose expert type</option><option>Educational Psychologist</option><option>Career Strategist</option><option>College Admissions Expert</option><option>Clinical Psychologist</option><option>Entrepreneurship Mentor</option></select>
+        <button class="live-btn" onclick="runExpertBooking()">📅 Check Availability & Book</button>
+        <div class="live-result" id="exp_result"></div>
+      </div>`;
+  }
+}
+
+// --- Career Counselor Logic ---
+// =====================
+// LOCAL KNOWLEDGE ENGINE — No API needed
+// =====================
+const careerDB = {
+  'Science (PCM)': {
+    coding:    { careers:'Software Engineer, Data Scientist, AI/ML Engineer, DevOps', exams:'JEE Main/Advanced, BITSAT, VITEEE', colleges:'IIT Bombay, BITS Pilani, NIT Trichy, IIIT Hyderabad', step1:'Clear JEE Main (target 98+ percentile)', step2:'Learn Python & DSA on LeetCode alongside prep', step3:'Build 2 GitHub projects before joining college' },
+    design:    { careers:'Product Designer, UX Engineer, Creative Technologist, Game Designer', exams:'UCEED, NID DAT, CEED (for M.Des)', colleges:'IIT Bombay (IDC), NID Ahmedabad, MIT Institute of Design', step1:'Build a design portfolio on Behance/Dribbble', step2:'Master Figma + basics of HTML/CSS', step3:'Apply to UCEED or NID DAT alongside JEE prep' },
+    math:      { careers:'Data Scientist, Actuary, Quantitative Analyst, Research Mathematician', exams:'JEE, CMI Entrance, ISI Entrance, CUSAT', colleges:'CMI Chennai, ISI Kolkata, IIT Madras, IISER', step1:'Crack JEE or CMI/ISI entrance exams', step2:'Learn Python, R, and statistics fundamentals', step3:'Intern at a fintech or analytics firm in 2nd year' },
+    physics:   { careers:'Research Scientist, Astrophysicist, Nuclear Engineer, Defence Scientist', exams:'JEE, IISER Aptitude Test, KVPY', colleges:'IISER Pune/Mohali, IIT Physics dept, TIFR', step1:'Appear for KVPY and IISER aptitude test', step2:'Read Feynman Lectures and do lab internships', step3:'Publish a small research paper in 3rd year' },
+    default:   { careers:'Engineer (any branch), Data Analyst, Product Manager, Researcher', exams:'JEE Main/Advanced, BITSAT, SRMJEEE', colleges:'IITs, NITs, BITS Pilani, top private universities', step1:'Target JEE Main 95+ percentile as baseline', step2:'Explore your interest area deeply in Year 1', step3:'Aim for a core internship or research project by Year 2' }
+  },
+  'Science (PCB)': {
+    medicine:  { careers:'Doctor (MBBS), Surgeon, Psychiatrist, Public Health Expert', exams:'NEET-UG, AIIMS (now NEET), JIPMER', colleges:'AIIMS New Delhi, JIPMER, MAMC Delhi, KMC Manipal', step1:'Target NEET 650+ (600 min for govt college)', step2:'NCERT Bio cover-to-cover is 90% of NEET Bio', step3:'Join a coaching or study group for mock tests from Nov' },
+    biotech:   { careers:'Biotechnologist, Genetic Engineer, Pharmaceutical Researcher, Bioinformatician', exams:'NEET, JNU entrance, BHU PET, CUET', colleges:'JNU, BHU, Amity, Manipal School of Life Sciences', step1:'Clear NEET or university entrance exams', step2:'Learn R/Python for bioinformatics early', step3:'Intern at a pharma company or research lab in Year 2' },
+    psychology:{ careers:'Clinical Psychologist, Counselor, Neuropsychologist, HR Specialist', exams:'CUET, DU entrance, TISS entrance, BHU PET', colleges:'TISS Mumbai, Delhi University, Christ University, NIMHANS', step1:'Pursue BSc/BA Psychology from a top college', step2:'Get RCI registration via MPhil Clinical Psychology', step3:'Start volunteering at NGOs or helplines early' },
+    default:   { careers:'Doctor, Biologist, Pharmacist, Nutritionist, Environmental Scientist', exams:'NEET-UG, CUET, State CETs', colleges:'AIIMS, top govt medical colleges, Amity, Manipal', step1:'Prepare seriously for NEET — it is the gateway', step2:'Explore biotech or psychology as a parallel path', step3:'Attend science olympiads and competitions for profile building' }
+  },
+  'Commerce': {
+    finance:   { careers:'Chartered Accountant, Investment Banker, CFA, Financial Analyst', exams:'CA Foundation (ICAI), CFA Level 1, CUET, IPU CET', colleges:'SRCC Delhi, NMIMS, Narsee Monjee, LSR Delhi', step1:'Register for CA Foundation right after 12th', step2:'Target BCom (H) from a top DU college simultaneously', step3:'Clear CA Intermediate within 18 months of Articles' },
+    business:  { careers:'Entrepreneur, Marketing Manager, Business Analyst, Consultant', exams:'IPMAT (IIM), BBA entrance, CUET, NPAT', colleges:'IIM Indore (IPM), Christ University BBA, NMIMS, Symbiosis', step1:'Clear IPMAT for IIM Indore\'s 5-year integrated program', step2:'Build a side project or small business idea', step3:'Target a top MBA college later — CAT 95+ percentile' },
+    economics: { careers:'Economist, Policy Analyst, IAS Officer, Data Analyst, Civil Services', exams:'CUET, DU entrance, UPSC CSE', colleges:'St. Stephen\'s Delhi, LSR, Presidency Kolkata, JNU', step1:'Get into a top BA Economics program via CUET', step2:'Supplement with statistics and data skills', step3:'Decide between academia, civil services, or private sector by Year 3' },
+    default:   { careers:'CA, MBA, Banking Professional, Company Secretary, Actuary', exams:'CA Foundation, IPMAT, CUET, CLAT', colleges:'SRCC, NMIMS, IIM Indore IPM, Symbiosis Pune', step1:'Choose between CA, MBA-track, or CS early', step2:'Build Excel, finance modeling, and communication skills', step3:'Do a finance internship in 2nd year of graduation' }
+  },
+  'Arts / Humanities': {
+    writing:   { careers:'Journalist, Content Strategist, UX Writer, Author, Editor', exams:'IIMC entrance, XIC entrance, CUET', colleges:'IIMC New Delhi, Symbiosis Journalism, ACJ Chennai, XIC Mumbai', step1:'Build a writing portfolio — blog, Medium, or journalism samples', step2:'Appear for IIMC or journalism school entrances', step3:'Intern at a digital media publication in Year 1' },
+    law:       { careers:'Advocate, Corporate Lawyer, Judge, Legal Consultant, IAS Officer', exams:'CLAT, AILET, LSAT India', colleges:'NLSIU Bangalore, NLU Delhi, NALSAR Hyderabad', step1:'Target CLAT — score 120+/150 for top NLUs', step2:'Join a moot court team and debate competitions', step3:'Intern at a law firm every summer — networking is crucial' },
+    history:   { careers:'IAS/IFS Officer, Museum Curator, Historian, Policy Researcher, Academic', exams:'UPSC CSE, CUET, DU entrance', colleges:'St. Stephens, JNU, Presidency College, Hyderabad University', step1:'Get into a top BA program — JNU or DU are ideal', step2:'Start UPSC preparation from 2nd year of graduation', step3:'Develop a niche expertise (medieval history, IR, public policy)' },
+    default:   { careers:'Civil Services, Journalist, Lawyer, Social Worker, Policy Analyst', exams:'CLAT, UPSC, IIMC, CUET', colleges:'JNU, DU, TISS, NLUs, Presidency College', step1:'Identify your sub-interest: law, policy, journalism, or research', step2:'Apply to top humanities colleges through CUET', step3:'Combine your subject with a skill — writing, data, or public speaking' }
+  },
+  'Working Professional': {
+    tech:      { careers:'Senior Engineer, Product Manager, CTO, Tech Lead, Startup Founder', exams:'GATE (for M.Tech), GRE (for MS abroad), CAT (for MBA)', colleges:'IITs (M.Tech), IIMs (MBA), ISB Hyderabad, top US/UK universities', step1:'Upskill in your target area — cloud, AI, or product management', step2:'Appear for CAT or GMAT for MBA, or GATE for M.Tech', step3:'Build a portfolio of impact metrics from your current role' },
+    management:{ careers:'Management Consultant, Operations Head, Business Leader, Entrepreneur', exams:'CAT, GMAT, NMAT, XAT', colleges:'IIM A/B/C, ISB, XLRI, MDI Gurgaon', step1:'Target CAT 99+ or GMAT 720+ for top schools', step2:'Build a strong work-experience narrative (impact, leadership)', step3:'Reach out to alumni of your target schools for insights' },
+    design:    { careers:'UX Lead, Design Director, Creative Head, Product Designer', exams:'CEED (IIT M.Des), NID MDes entrance, portfolio review', colleges:'IIT Bombay IDC, NID, Srishti, MIT Institute of Design', step1:'Build a 5-case-study UX portfolio', step2:'Appear for CEED for IIT M.Des programs', step3:'Contribute to open-source design or design systems projects' },
+    default:   { careers:'Senior professional, MBA grad, Entrepreneur, Specialist consultant', exams:'CAT, GMAT, GATE, GRE depending on path', colleges:'IIMs, ISB, IITs, international universities', step1:'Define your goal: MBA, technical master\'s, or entrepreneurship', step2:'Prepare for the relevant entrance exam with a 6-month plan', step3:'Leverage your work experience as a differentiator in applications' }
+  }
+};
+
+function runCareerCounselor() {
+  const name = document.getElementById('cc_name').value.trim() || 'Student';
+  const stream = document.getElementById('cc_stream').value;
+  const interest = document.getElementById('cc_interest').value.trim().toLowerCase();
+  const result = document.getElementById('cc_result');
+  if (!stream || !interest) { alert('Please fill in all fields.'); return; }
+
+  result.innerHTML = `<div class="module-loading"><div class="spin"></div>Generating your personalized roadmap...</div>`;
+  result.classList.add('show');
+
+  setTimeout(() => {
+    const streamData = careerDB[stream] || careerDB['Working Professional'];
+    let match = streamData.default;
+    const keys = Object.keys(streamData).filter(k => k !== 'default');
+    for (const key of keys) {
+      if (interest.includes(key) || key.includes(interest.split(' ')[0])) { match = streamData[key]; break; }
+    }
+    // fuzzy keyword match
+    if (match === streamData.default) {
+      const kwMap = {coding:['code','program','software','tech','computer','web','app','developer'],design:['design','art','ux','ui','creative','visual'],math:['math','maths','statistics','data','quant'],medicine:['doctor','medical','mbbs','health','biology','neet'],finance:['finance','ca','money','bank','invest','account'],law:['law','legal','lawyer','clat','judge'],business:['business','entrepreneur','startup','management','mba'],writing:['write','journal','content','media','author'],psychology:['psychology','mental','counsel','therapy'],physics:['physics','research','science','space'],biotech:['bio','biotech','pharma','genetics'],economics:['economics','policy','upsc','ias','civil service'],tech:['engineer','product manager','cloud','ai','ml'],history:['history','humanities','culture','museum']};
+      for (const [key, words] of Object.entries(kwMap)) {
+        if (words.some(w => interest.includes(w)) && streamData[key]) { match = streamData[key]; break; }
+      }
+    }
+
+    result.innerHTML = `
+      <h5>🎯 Personalized Roadmap for ${name}!</h5>
+      <p><strong>Stream:</strong> ${stream} &nbsp;|&nbsp; <strong>Interest:</strong> ${interest}</p><br>
+      <p><strong>🏆 Top Career Paths:</strong><br>${match.careers}</p><br>
+      <p><strong>📝 Key Entrance Exams:</strong><br>${match.exams}</p><br>
+      <p><strong>🏛️ Top Colleges to Target:</strong><br>${match.colleges}</p><br>
+      <p><strong>📌 Your 3-Step Action Plan:</strong></p>
+      <p>① ${match.step1}<br>② ${match.step2}<br>③ ${match.step3}</p><br>
+      <p style="font-size:0.78rem;color:var(--accent);">✦ Book a 1:1 session with our expert panel for a full 5-year roadmap tailored to you.</p>`;
+  }, 900);
+}
+
+// --- Interest Finder Logic ---
+const riasecMap = {
+  'Build or fix things':'R','Hands-on work':'R','Outdoors / labs':'R',
+  'Research and analyze':'I','Critical thinking':'I','Research lab / library':'I',
+  'Create art or music':'A','Creativity':'A','Studio / open space':'A',
+  'Help others':'S','Communication':'S','With people / community':'S',
+  'Lead projects':'E','Persuasion':'E','Office / leadership role':'E',
+  'Organize data':'C','Detail & accuracy':'C','Structured / systematic':'C'
+};
+const riasecCareers = {R:'Engineer, Technician, Surgeon, Pilot',I:'Scientist, Data Analyst, Researcher, Doctor',A:'Designer, Architect, Writer, Filmmaker',S:'Counselor, Teacher, Social Worker, HR',E:'Entrepreneur, Manager, Lawyer, Politician',C:'CA, Banker, Actuary, Administrator'};
+const riasecNames = {R:'Realistic',I:'Investigative',A:'Artistic',S:'Social',E:'Enterprising',C:'Conventional'};
+
+function runInterestFinder() {
+  const q1 = document.getElementById('if_q1').value;
+  const q2 = document.getElementById('if_q2').value;
+  const q3 = document.getElementById('if_q3').value;
+  if (!q1||!q2||!q3) { alert('Please answer all 3 questions.'); return; }
+
+  const scores = {R:0,I:0,A:0,S:0,E:0,C:0};
+  [q1,q2,q3].forEach(v => { const k=riasecMap[v]; if(k) scores[k]+=34; });
+  Object.keys(scores).forEach(k => { if(!scores[k]) scores[k] = Math.floor(Math.random()*25)+10; });
+
+  const sorted = Object.entries(scores).sort((a,b)=>b[1]-a[1]);
+  const top = sorted[0][0];
+  const result = document.getElementById('if_result');
+  const barsHTML = sorted.map(([k,v]) =>
+    `<div class="riasec-row"><div class="riasec-label">${riasecNames[k]}</div><div class="riasec-track"><div class="riasec-fill" style="width:0%" data-w="${v}%"></div></div><div class="riasec-pct">${v}%</div></div>`
+  ).join('');
+
+  result.innerHTML = `<h5>🌈 Your RIASEC Profile</h5><div class="riasec-bars">${barsHTML}</div><br><strong style="color:var(--accent3)">Your dominant type: ${riasecNames[top]} (${top})</strong><br><p style="margin-top:8px;">Best career matches: <strong>${riasecCareers[top]}</strong></p>`;
+  result.classList.add('show');
+
+  setTimeout(() => {
+    result.querySelectorAll('.riasec-fill').forEach(bar => {
+      bar.style.transition = 'width 1s ease';
+      bar.style.width = bar.getAttribute('data-w');
+    });
+  }, 100);
+}
+
+// --- Modal Chatbot ---
+function sendModalChat() {
+  const input = document.getElementById('modal_chatInput');
+  const msg = input.value.trim();
+  if (!msg) return;
+  const body = document.getElementById('modal_chatBody');
+  body.innerHTML += `<div style="display:flex;justify-content:flex-end;"><div style="padding:10px 14px;background:var(--accent);border-radius:14px;border-bottom-right-radius:3px;font-size:0.82rem;max-width:80%;">${msg}</div></div>`;
+  input.value = '';
+  const typingId = 'mt_' + Date.now();
+  body.innerHTML += `<div id="${typingId}" style="display:flex;gap:8px;"><div style="padding:10px 14px;background:var(--surface);border:1px solid var(--border);border-radius:14px;border-bottom-left-radius:3px;font-size:0.82rem;color:var(--text-muted);font-style:italic;">Thinking...</div></div>`;
+  body.scrollTop = 9999;
+  setTimeout(() => {
+    const reply = getClusterAnswer(msg);
+    document.getElementById(typingId).innerHTML = `<div style="padding:10px 14px;background:var(--surface);border:1px solid var(--border);border-radius:14px;border-bottom-left-radius:3px;font-size:0.82rem;line-height:1.65;max-width:88%;">${reply}</div>`;
+    body.scrollTop = 9999;
+  }, 700 + Math.random() * 500);
+}
+
+// --- College Advisor Logic ---
+function runCollegeAdvisor() {
+  const course = document.getElementById('ca_course').value;
+  const score = document.getElementById('ca_score').value.trim();
+  const pref = document.getElementById('ca_pref').value;
+  if (!course || !score) { alert('Please fill all fields.'); return; }
+
+  const colleges = {
+    'Computer Science / IT': [
+      {name:'IIT Bombay', sub:'CSE — JEE Advanced Top 500', score:'98% fit'},
+      {name:'BITS Pilani', sub:'CS — BITSAT 360+', score:'95% fit'},
+      {name:'NIT Trichy', sub:'CSE — JEE Mains 99 percentile', score:'91% fit'},
+      {name:'VIT Vellore', sub:'CSE — VITEEE Top 1000', score:'85% fit'},
+    ],
+    'Medical / MBBS': [
+      {name:'AIIMS New Delhi', sub:'MBBS — NEET 720/720', score:'99% fit'},
+      {name:'JIPMER Puducherry', sub:'MBBS — NEET 660+', score:'94% fit'},
+      {name:'Maulana Azad Medical', sub:'MBBS — NEET 640+', score:'89% fit'},
+      {name:'Kasturba Medical College', sub:'MBBS — NEET 600+', score:'83% fit'},
+    ],
+    'Commerce / BBA / MBA': [
+      {name:'IIM Ahmedabad', sub:'MBA — CAT 99.5 percentile', score:'98% fit'},
+      {name:'SRCC Delhi', sub:'BCom (H) — 97%+ boards', score:'93% fit'},
+      {name:'NMIMS Mumbai', sub:'BBA — NPAT 90+ percentile', score:'88% fit'},
+      {name:'Christ University', sub:'BBA — 85%+ boards', score:'82% fit'},
+    ],
+  };
+
+  const list = colleges[course] || [
+    {name:'Top National University', sub:`${course} program — Based on your score`, score:'90% fit'},
+    {name:'Leading State University', sub:`${course} — Merit based admission`, score:'85% fit'},
+    {name:'Private Deemed University', sub:`${course} — Management quota available`, score:'78% fit'},
+  ];
+
+  const result = document.getElementById('ca_result');
+  result.innerHTML = `<h5>🏛️ Top Colleges for ${course} — ${pref || 'All India'}</h5>` +
+    list.map(c=>`<div class="college-card"><div><div class="college-card-name">${c.name}</div><div class="college-card-sub">${c.sub}</div></div><div class="college-card-score">${c.score}</div></div>`).join('') +
+    `<p style="margin-top:12px;font-size:0.78rem;color:var(--text-muted)">Based on your input: <strong>${score}</strong>. Book a session with our College Advisor for a complete application strategy.</p>`;
+  result.classList.add('show');
+}
+
+// --- XAI Logic ---
+function runXAI() {
+  const career = document.getElementById('xai_career').value;
+  if (!career) { alert('Please select a career.'); return; }
+
+  const xaiData = {
+    'Software Engineer': {conf:92, factors:[{f:'Logical reasoning aptitude',w:28},{f:'Math/Science academic score',w:22},{f:'Job market demand (India: +31% YoY)',w:20},{f:'Coding interest signals',w:18},{f:'RIASEC: Investigative match',w:12}]},
+    'UX Designer': {conf:88, factors:[{f:'Artistic/Creative interest',w:30},{f:'Spatial reasoning score',w:24},{f:'Design portfolio signals',w:18},{f:'Job market demand (+23% YoY)',w:16},{f:'RIASEC: Artistic match',w:12}]},
+    'Data Scientist': {conf:85, factors:[{f:'Mathematics aptitude',w:32},{f:'Analytical thinking score',w:26},{f:'Tech interest signals',w:20},{f:'Market demand (fastest growing)',w:14},{f:'RIASEC: Investigative',w:8}]},
+    'Doctor (MBBS)': {conf:90, factors:[{f:'Biology/Science academic score',w:30},{f:'Empathy and social interest',w:25},{f:'NEET preparation signals',w:20},{f:'Long-term career stability',w:15},{f:'RIASEC: Social/Investigative',w:10}]},
+    'IAS Officer': {conf:82, factors:[{f:'General awareness & reading',w:28},{f:'Leadership interest signals',w:24},{f:'Communication skills score',w:20},{f:'Social impact motivation',w:16},{f:'RIASEC: Social/Enterprising',w:12}]},
+    'Chartered Accountant': {conf:87, factors:[{f:'Commerce academic score',w:32},{f:'Attention to detail',w:26},{f:'Math aptitude',w:18},{f:'Market demand (stable)',w:14},{f:'RIASEC: Conventional',w:10}]},
+    'Architect': {conf:84, factors:[{f:'Artistic/Creative score',w:28},{f:'Spatial reasoning',w:26},{f:'Math aptitude',w:20},{f:'Design interest signals',w:16},{f:'RIASEC: Artistic/Realistic',w:10}]},
+  };
+
+  const d = xaiData[career] || {conf:80, factors:[{f:'General aptitude',w:30},{f:'Interest alignment',w:25},{f:'Market demand',w:20},{f:'Academic score',w:15},{f:'Personality fit',w:10}]};
+  const result = document.getElementById('xai_result');
+
+  result.innerHTML = `
+    <h5>🔍 AI Decision Breakdown: ${career}</h5>
+    <div style="margin-bottom:16px;">
+      <div style="font-size:0.78rem;color:var(--text-muted);margin-bottom:6px;font-family:'Space Mono',monospace;">Overall Confidence Score</div>
+      <div style="height:8px;background:var(--surface);border-radius:4px;overflow:hidden;margin-bottom:6px;"><div style="height:100%;width:0%;border-radius:4px;background:linear-gradient(90deg,var(--accent),var(--accent2));transition:width 1.2s ease;" id="confFill"></div></div>
+      <strong style="color:var(--accent3);font-family:'Space Mono',monospace;">${d.conf}% — High Confidence Match</strong>
+    </div>
+    <div style="font-size:0.78rem;color:var(--text-muted);margin-bottom:10px;font-family:'Space Mono',monospace;">CONTRIBUTING FACTORS</div>
+    <div class="riasec-bars">
+      ${d.factors.map(f=>`<div class="riasec-row"><div class="riasec-label" style="width:160px;font-family:'DM Sans',sans-serif;font-size:0.75rem;">${f.f}</div><div class="riasec-track"><div class="riasec-fill" style="width:0%" data-w="${f.w*3}%"></div></div><div class="riasec-pct">${f.w}%</div></div>`).join('')}
+    </div>
+    <p style="margin-top:14px;font-size:0.78rem;color:var(--text-muted);">This breakdown shows exactly <strong>why</strong> Cluster recommends this career. Each factor is weighted based on your profile data and validated by our expert panel.</p>`;
+  result.classList.add('show');
+
+  setTimeout(() => {
+    document.getElementById('confFill').style.width = d.conf + '%';
+    result.querySelectorAll('.riasec-fill').forEach(bar => { bar.style.transition='width 1s ease'; bar.style.width=bar.getAttribute('data-w'); });
+  }, 100);
+}
+
+// --- Expert Booking Logic ---
+function runExpertBooking() {
+  const name = document.getElementById('exp_name').value.trim() || 'Student';
+  const topic = document.getElementById('exp_topic').value;
+  const expert = document.getElementById('exp_expert').value;
+  if (!topic || !expert) { alert('Please fill all fields.'); return; }
+
+  const slots = ['Tomorrow 10:00 AM','Tomorrow 2:30 PM','Tomorrow 5:00 PM','Day after 11:00 AM','Day after 3:00 PM'];
+  const expertMap = {
+    'Educational Psychologist':'Dr. Anita Sharma',
+    'Career Strategist':'Vikram Nair',
+    'College Admissions Expert':'Rajesh Patel',
+    'Clinical Psychologist':'Dr. Sunita Krishnan',
+    'Entrepreneurship Mentor':'Arun Gupta'
+  };
+
+  const result = document.getElementById('exp_result');
+  result.innerHTML = `
+    <h5>📅 Available Slots for ${name}</h5>
+    <p style="margin-bottom:16px;"><strong>${expertMap[expert]||expert}</strong> — ${expert}<br><span style="font-size:0.78rem;color:var(--text-muted);">Topic: ${topic}</span></p>
+    ${slots.map((s,i)=>`<div class="college-card" style="cursor:pointer;" onclick="bookSlot(this,'${s}')"><div><div class="college-card-name">${s}</div><div class="college-card-sub">60 min session • Video call</div></div><div class="college-card-score" style="background:rgba(108,99,255,0.1);border-color:rgba(108,99,255,0.3);color:var(--accent);">Book</div></div>`).join('')}
+    <p style="margin-top:12px;font-size:0.75rem;color:var(--text-muted);">Sessions are ₹0 for first consultation. Powered by Cluster's verified expert network.</p>`;
+  result.classList.add('show');
+}
+
+function bookSlot(el, slot) {
+  el.style.borderColor = 'var(--accent3)';
+  el.querySelector('.college-card-score').textContent = '✓ Booked';
+  el.querySelector('.college-card-score').style.cssText = 'background:rgba(0,212,170,0.1);border:1px solid rgba(0,212,170,0.3);color:var(--accent3);padding:4px 10px;border-radius:100px;font-family:Space Mono,monospace;font-size:0.78px;';
+}
+
+// =====================
+// INTEREST FINDER (main page)
+// =====================
+const interestMap = {
+  tech:{title:'💻 Software Engineer / Data Scientist',desc:'Your passion for technology aligns strongly with careers in software development, AI/ML, cybersecurity, or data science. Cluster recommends exploring STEM programs at IITs, NITs, or top private tech universities.'},
+  art:{title:'🎨 UX Designer / Creative Director',desc:'Your artistic interests point toward careers in UX/UI design, graphic design, animation, or creative direction. Consider design schools like NID, MIT ID, or international programs.'},
+  science:{title:'🔬 Research Scientist / Medical Professional',desc:'Your scientific curiosity is ideal for research, biotechnology, medicine, or environmental science. Consider NEET, IISER, or top research institutions.'},
+  business:{title:'📊 Management Consultant / Entrepreneur',desc:'Your business acumen aligns with careers in management consulting, finance, entrepreneurship, or marketing. IIMs, XLRI, and top MBA programs would be ideal paths.'},
+  health:{title:'🏥 Doctor / Healthcare Administrator',desc:'Your interest in healthcare points to medicine, nursing, physiotherapy, public health, or healthcare management. AIIMS, top medical colleges, and WHO programs are recommended.'},
+  social:{title:'🤝 Social Worker / NGO Leader / Policy Maker',desc:'Your passion for social impact aligns with careers in social work, public policy, development sector, or NGO leadership. TISS, JNU, and policy institutes are strong choices.'},
+  law:{title:'⚖️ Advocate / IAS Officer / Policy Analyst',desc:'Your interest in law and governance points to a legal career, civil services, or policy research. NLUs, UPSC preparation, and political science programs are the path forward.'},
+  media:{title:'🎬 Journalist / Content Creator / Filmmaker',desc:'Your media interests align with journalism, filmmaking, digital content creation, or PR. FTII, IIMC, and media schools offer excellent programs.'},
+  education:{title:'📚 Professor / Education Technologist',desc:'Your love for education points toward teaching, instructional design, EdTech, or academic research. B.Ed, PhD, and EdTech startups are exciting pathways.'},
+  engineering:{title:'⚙️ Core Engineer / Product Manager',desc:'Your interest in engineering spans mechanical, civil, electrical, or chemical fields. IITs, NITs, and top engineering colleges will set you on the right path.'},
+};
+let selectedInterests = new Set();
+function selectInterest(el,key){
+  el.classList.toggle('selected');
+  selectedInterests.has(key)?selectedInterests.delete(key):selectedInterests.add(key);
+  const result=document.getElementById('interestResult');
+  if(!selectedInterests.size){result.classList.remove('show');return;}
+  const primary=[...selectedInterests].at(-1);
+  const d=interestMap[primary];
+  document.getElementById('resultTitle').textContent=d.title;
+  document.getElementById('resultDesc').textContent=d.desc;
+  result.classList.add('show');
+}
+
+// =====================
+// CLUSTER KNOWLEDGE ENGINE
+// =====================
+function getClusterAnswer(msg) {
+  const q = msg.toLowerCase().trim();
+
+  // JEE / IIT
+  if (/\bjee\b|iit|jee main|jee advanced|bitsat/.test(q))
+    return `<strong>JEE Roadmap:</strong> Start with NCERT mastery in Physics, Chemistry & Maths — no shortcuts. Then use HC Verma (Physics), MS Chauhan (Chemistry), and Cengage (Maths). Solve 10 years of JEE papers. Target: JEE Main 99 percentile → JEE Advanced rank under 5000 for IIT CSE. Daily study: 6–8 hrs focused. <strong>Top platforms:</strong> Allen, Vedantu, PW (Physics Wallah). Timeline: 2 years from Class 11 is ideal.`;
+
+  // NEET
+  if (/\bneet\b|mbbs|medical college|doctor after 12|aiims/.test(q))
+    return `<strong>NEET Strategy:</strong> NCERT Biology is everything — read it 5 times minimum (90% of Bio questions come directly from NCERT). For Physics: HC Verma. For Chemistry: NCERT + Morrison Boyd for Organic. Target score: <strong>650+ for AIIMS/JIPMER</strong>, 600+ for government medical college. Mock tests from October onwards — aim for 3 full mocks per week. NEET is a marathon, not a sprint.`;
+
+  // UPSC / IAS
+  if (/upsc|ias|ips|civil service|ifs officer|collector/.test(q))
+    return `<strong>UPSC Civil Services Path:</strong> Foundation: NCERT books 6th–12th for all subjects. Then: Laxmikanth (Polity), Ramesh Singh (Economy), Spectrum (Modern History), GC Leong (Geography). Optional subject choice is critical — pick one you genuinely love. <strong>Timeline:</strong> 12–18 months of dedicated prep. Prelims (June) → Mains (Sept) → Interview. Success rate: ~0.2%. Join a test series by Month 6. Daily newspaper: The Hindu or Indian Express.`;
+
+  // CAT / MBA / IIM
+  if (/\bcat\b|iim|mba|management|pgdm|gmat/.test(q))
+    return `<strong>CAT & MBA Guide:</strong> CAT has 3 sections: VARC, DILR, Quant. <strong>Target: 99+ percentile</strong> for IIM A/B/C. Prep time: 6–8 months. Use: TIME, IMS, or Career Launcher materials. IIM calls at 98+. Also consider: <strong>XLRI (XAT), NMIMS (NMAT), Symbiosis (SNAP)</strong>. Work experience (2+ years) significantly boosts your IIM profile. Average CTC from IIM A: ₹30+ LPA.`;
+
+  // CA
+  if (/\bca\b|chartered accountant|icai|ca foundation|ca inter/.test(q))
+    return `<strong>CA (Chartered Accountancy):</strong> Path: Foundation → Intermediate → Final + 3 years Articles. Total time: ~4.5–5 years. Pass rates: Foundation 45%, Inter 15–20%, Final 10–15%. <strong>Pro tip:</strong> Register for Foundation right after 12th. ICAI is the only body. Entry-level Big 4 salary: ₹7–12 LPA. After 5 years experience: ₹20–40 LPA. Combine CA with CFA or MBA for maximum impact.`;
+
+  // Data Science / AI / ML
+  if (/data science|machine learning|\bai\b|artificial intelligence|\bml\b|deep learning/.test(q))
+    return `<strong>Data Science Career:</strong> Skills to build: Python (Pandas, NumPy, Sklearn), SQL, Statistics, ML algorithms, and one of TensorFlow/PyTorch. <strong>Learning path:</strong> Andrew Ng's ML course (Coursera) → Kaggle competitions → real projects. Entry roles: Data Analyst → ML Engineer → Senior DS. <strong>Salaries:</strong> Entry ₹6–15 LPA, Senior ₹25–60 LPA at top firms. Top recruiters: Google, Amazon, Flipkart, CRED, Razorpay. Degree: BTech/BSc + relevant projects matters more than college name.`;
+
+  // Software Engineering
+  if (/software engineer|coding|programming|developer|web dev|full stack|backend|frontend/.test(q))
+    return `<strong>Software Engineering Path:</strong> Master: Data Structures & Algorithms (DSA) + one language (Python/Java/C++). For placements: solve 300+ LeetCode problems (medium level). System Design is crucial for senior roles. <strong>Top companies:</strong> Google, Microsoft, Amazon, Flipkart pay ₹20–80 LPA for freshers. Bootcamp alternative: 6-month full-stack course works if you build real projects. GitHub profile with 5+ projects is your resume. College tier matters less than your skills.`;
+
+  // UX / Design
+  if (/ux|ui design|product design|graphic design|figma|design career/.test(q))
+    return `<strong>UX/UI Design Career:</strong> Core tools: Figma (must), Adobe XD, Protopie. Skills: user research, wireframing, prototyping, usability testing. Build 3–5 detailed case studies on Behance. <strong>Salary:</strong> Junior ₹4–8 LPA, Mid-level ₹12–25 LPA, Senior at top tech ₹30–60 LPA. Entry paths: freelance → startup → product company. Best courses: Google UX Design (Coursera), NID/UCEED for formal education. Portfolio matters 10x more than your degree.`;
+
+  // Engineering vs Medicine
+  if (/engineering.{0,20}medicine|medicine.{0,20}engineering|vs medicine|vs engineering/.test(q))
+    return `<strong>Engineering vs Medicine — The Real Difference:</strong><br>🔧 <strong>Engineering (4 yrs):</strong> ₹5–80 LPA, fast career growth, diverse roles in tech/core/consulting. JEE is gateway.<br>🏥 <strong>Medicine (5.5 + 3 yrs PG):</strong> ₹15–80 LPA post-specialization, direct impact on lives, more structured path. NEET is gateway.<br><strong>Choose Engineering</strong> if you love logic, tech, and problem-solving systems. <strong>Choose Medicine</strong> if biology drives you and you want to heal people directly. Both are excellent — pick based on your genuine interest, not peer pressure.`;
+
+  // Salary / package questions
+  if (/salary|package|lpa|earnings|how much.{0,20}earn|pay/.test(q))
+    return `<strong>India Career Salary Guide (2024):</strong><br>• Software Engineer: ₹5–80 LPA (fresher to senior)<br>• Data Scientist: ₹8–60 LPA<br>• Doctor (post-PG): ₹15–80 LPA<br>• CA: ₹7–35 LPA<br>• IAS Officer: ₹56K–2.5L/month + perks<br>• UX Designer: ₹5–45 LPA<br>• MBA (IIM-A): ₹30–80 LPA average placement<br>• Lawyer (NLU grad): ₹8–50 LPA<br>Salaries vary greatly by city, company, and experience. Tier-1 cities pay 30–50% more than Tier-2.`;
+
+  // Abroad / foreign university
+  if (/abroad|usa|uk|canada|australia|foreign univ|study abroad|ms abroad|gre/.test(q))
+    return `<strong>Studying Abroad:</strong><br>🇺🇸 <strong>USA:</strong> GRE/SAT + TOEFL/IELTS. Apply via Common App (UG) or direct portal (PG). Deadline: Dec–Jan.<br>🇬🇧 <strong>UK:</strong> UCAS for UG, direct for Masters. 1-year MS is popular.<br>🇨🇦 <strong>Canada:</strong> Strong for PR post-study. Apply Aug–Nov.<br><strong>Key exams:</strong> GRE 320+, IELTS 6.5+, TOEFL 100+.<br><strong>Top scholarships:</strong> Fulbright (USA), Chevening (UK), Vanier (Canada).<br>Start 18 months before target intake. Average cost: ₹30–80L for full program.`;
+
+  // Psychology
+  if (/psychology|therapist|counselor|mental health career|clinical psychologist/.test(q))
+    return `<strong>Psychology Career in India:</strong> Path: BA/BSc Psychology → MA/MSc → MPhil Clinical Psychology (RCI registered) for clinical practice. <strong>Top institutes:</strong> NIMHANS Bangalore, TISS Mumbai, Delhi University, Christ University. Specializations: Clinical, Counseling, I/O Psychology, Neuropsychology. <strong>Salary:</strong> ₹4–8 LPA entry, ₹15–30 LPA for senior clinical roles. Private practice can earn ₹2,000–10,000/session. RCI registration is mandatory for clinical practice in India.`;
+
+  // Law / CLAT
+  if (/\blaw\b|clat|lawyer|advocate|legal|nlsiu|nlu|barrister/.test(q))
+    return `<strong>Law Career in India:</strong> Gateway: CLAT exam for National Law Universities. <strong>Top NLUs:</strong> NLSIU Bangalore, NLU Delhi, NALSAR Hyderabad, NLU Jodhpur. CLAT cutoff for NLSIU: 100+/120. After LLB (5 years): join a top law firm, judiciary, or pursue LLM. <strong>Corporate lawyer salary:</strong> ₹8–50 LPA. Judiciary path: State judicial services exam. Also consider: UPSC IFS/IPS with law background. Bar Council enrollment mandatory to practice.`;
+
+  // Entrepreneurship
+  if (/entrepreneur|startup|business idea|found|own company|venture/.test(q))
+    return `<strong>Entrepreneurship Path:</strong> You don't need a special degree — you need a problem to solve and the courage to act. Best education: BTech/MBA from IIT/IIM for network + credibility. <strong>Resources:</strong> IIM-B NSRCEL, IIT incubators, NASSCOM 10k Startups, Startup India. Funding path: Bootstrap → Angel (₹25L–2Cr) → VC. Skills to build: sales, product thinking, financial modeling. <strong>Reality check:</strong> 90% of startups fail. Build skills and financial runway before going full-time.`;
+
+  // After 10th
+  if (/after 10th|after class 10|class 11|stream select/.test(q))
+    return `<strong>After 10th — Stream Selection:</strong><br>📐 <strong>Science (PCM):</strong> If you love maths/logic → Engineering, Technology, Architecture<br>🧬 <strong>Science (PCB):</strong> If biology excites you → Medicine, Pharmacy, Research<br>📊 <strong>Commerce:</strong> If business/money interests you → CA, MBA, Finance<br>📚 <strong>Arts/Humanities:</strong> If you love people/ideas → Law, Journalism, Civil Services, Psychology<br><strong>Key advice:</strong> Don't pick a stream based on peer pressure. Pick what genuinely interests you — all streams lead to great careers if pursued with purpose.`;
+
+  // After 12th
+  if (/after 12th|after class 12|12th pass|what to do after/.test(q))
+    return `<strong>After 12th — Your Options:</strong><br>🔬 <strong>Science PCM:</strong> JEE for Engineering, UCEED/NID for Design, ISI/CMI for Maths<br>🩺 <strong>Science PCB:</strong> NEET for Medicine, CUET for BSc/Biotech, Psychology programs<br>💼 <strong>Commerce:</strong> CA Foundation, IPMAT for IIM, BBA, BCom<br>📖 <strong>Arts:</strong> CLAT for Law, IIMC for Journalism, CUET for BA, UPSC prep start<br><strong>Timeline tip:</strong> Entrance exam results come May–July. Have a plan A and plan B ready by February.`;
+
+  // Government jobs
+  if (/government job|sarkari|bank job|ibps|ssc|railway|defence/.test(q))
+    return `<strong>Government Career Paths:</strong><br>🏛️ <strong>Civil Services (UPSC):</strong> IAS/IPS/IFS — highest prestige. Salary + perks + power.<br>🏦 <strong>Banking:</strong> IBPS PO/Clerk, SBI PO — stable, good salary ₹40K–80K/month.<br>🚆 <strong>Railways (RRB):</strong> Multiple posts across all qualifications.<br>🛡️ <strong>Defence:</strong> NDA (after 12th), CDS, AFCAT for commissioned officer.<br>📊 <strong>SSC:</strong> CGL for graduation-level posts in central government.<br>All have job security, pension, and good work-life balance. Prepare for at least 6–12 months.`;
+
+  // Commerce/Arts/specific streams handled
+  if (/bcom|commerce career|finance career/.test(q))
+    return `<strong>Commerce Career Options:</strong> CA (most respected), CFA (global finance), CS (Company Secretary), CMA, MBA Finance, Banking (IBPS), Actuarial Science, FinTech. <strong>Best path:</strong> BCom (H) from DU/NMIMS + CA simultaneously. CA earns ₹7–35 LPA, IIM MBA after work exp can reach ₹30–80 LPA. The commerce stream has more high-paying career options than most people realize.`;
+
+  // Cluster / about
+  if (/cluster|about this|what is cluster|this platform/.test(q))
+    return `<strong>About Cluster:</strong> Cluster is an AI-powered career counseling platform built by a passionate team — Viransh Jain (Lead Dev), Dhruvika Varshney (Backend), M Samyuktha (Frontend), Jothirvishal R (Tech Advisor), and D Supriya Reddy (Data). It combines 6 modules: AI Career Counselor, Interest Finder, AI Chatbot, College Advisor, Explainable AI, and a Human Expert Panel. The mission: make world-class career guidance accessible to every Indian student — free from bias, jargon, and gatekeeping.`;
+
+  // Hello / greeting
+  if (/^(hi|hello|hey|namaste|hii|helo|sup|good morning|good afternoon)/.test(q))
+    return `Hello! 👋 I'm <strong>Cluster AI</strong>, your career guide. I can help you with:<br>• Career path guidance after 10th/12th<br>• Exam prep (JEE, NEET, UPSC, CAT, CLAT...)<br>• College selection & admissions<br>• Salary benchmarks & industry insights<br>• Abroad education guidance<br><br>Just ask me anything directly — I give clear, no-nonsense answers! What's on your mind?`;
+
+  // Thank you
+  if (/thank|thanks|tysm|great|awesome|helpful/.test(q))
+    return `You're welcome! 🎯 Remember — the best career is one that aligns your <strong>interests + skills + market demand</strong>. Cluster is here whenever you need guidance. Feel free to explore our modules above for a full personalized analysis. Best of luck on your journey! ✦`;
+
+  // Default — intelligent fallback based on keywords
+  const topicGuess = q.includes('college') ? 'college admissions' : q.includes('exam') ? 'entrance exams' : q.includes('career') ? 'career planning' : q.includes('job') ? 'job market' : 'career guidance';
+  return `Great question about <strong>${topicGuess}</strong>! Here's what Cluster recommends: The best path depends on your stream and interests. For a fully personalized answer, try our <strong>AI Career Counselor module</strong> (click any module card above) — enter your stream and interest and get a complete roadmap in seconds. You can also ask me more specifically, like: <em>"What should I do after 12th Science?"</em> or <em>"How do I prepare for UPSC?"</em> — I'll give you a direct, detailed answer right away! 🎯`;
+}
+
+// =====================
+// MAIN PAGE CHATBOT
+// =====================
+function sendChat() {
+  const input = document.getElementById('chatInput');
+  const msg = input.value.trim();
+  if (!msg) return;
+
+  const chatBody = document.getElementById('chatBody');
+  chatBody.innerHTML += `<div class="chat-msg user"><div class="chat-bubble">${msg}</div></div>`;
+  input.value = '';
+
+  const typingId = 'typing_' + Date.now();
+  chatBody.innerHTML += `<div class="chat-msg bot" id="${typingId}"><div class="chat-bubble" style="color:var(--text-muted);font-style:italic;">Cluster is thinking...</div></div>`;
+  chatBody.scrollTop = chatBody.scrollHeight;
+
+  setTimeout(() => {
+    const reply = getClusterAnswer(msg);
+    document.getElementById(typingId).innerHTML = `<div class="chat-bubble">${reply}</div>`;
+    chatBody.scrollTop = chatBody.scrollHeight;
+  }, 600 + Math.random() * 600);
+}
+
+function fillChat(text) {
+  document.getElementById('chatInput').value = text;
+  document.getElementById('demo').scrollIntoView({ behavior:'smooth' });
+  setTimeout(() => document.getElementById('chatInput').focus(), 800);
+}
+</script>
+
+</body>
+</html>
