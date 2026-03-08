@@ -32,71 +32,27 @@
     cursor: none;
   }
 
-  /* CUSTOM CURSOR */
+  /* CUSTOM CURSOR — zero CSS transition lag */
+  #cursor-dot, #cursor-ring {
+    position: fixed;
+    top: 0; left: 0;
+    border-radius: 50%;
+    pointer-events: none;
+    will-change: transform;
+    transition: none;
+  }
   #cursor-dot {
-    position: fixed;
     width: 8px; height: 8px;
-    background: var(--accent);
-    border-radius: 50%;
-    pointer-events: none;
-    z-index: 99999;
-    transform: translate(-50%, -50%);
-    transition: transform 0.08s ease, background 0.2s;
-    box-shadow: 0 0 10px var(--accent), 0 0 20px rgba(108,99,255,0.4);
+    background: #6c63ff;
+    z-index: 100000;
+    box-shadow: 0 0 8px #6c63ff;
   }
-
   #cursor-ring {
-    position: fixed;
-    width: 36px; height: 36px;
+    width: 32px; height: 32px;
     border: 1.5px solid rgba(108,99,255,0.6);
-    border-radius: 50%;
-    pointer-events: none;
-    z-index: 99998;
-    transform: translate(-50%, -50%);
-    transition: width 0.3s ease, height 0.3s ease, border-color 0.3s, background 0.3s, transform 0.12s ease;
-    backdrop-filter: blur(1px);
+    z-index: 99999;
   }
-
-  #cursor-trail {
-    position: fixed;
-    pointer-events: none;
-    z-index: 99997;
-  }
-
-  .trail-dot {
-    position: fixed;
-    width: 4px; height: 4px;
-    background: var(--accent);
-    border-radius: 50%;
-    pointer-events: none;
-    transform: translate(-50%, -50%);
-    opacity: 0;
-  }
-
-  body.cursor-hover #cursor-dot {
-    transform: translate(-50%, -50%) scale(2.5);
-    background: var(--accent2);
-    box-shadow: 0 0 16px var(--accent2), 0 0 32px rgba(255,107,157,0.5);
-  }
-
-  body.cursor-hover #cursor-ring {
-    width: 56px; height: 56px;
-    border-color: rgba(255,107,157,0.5);
-    background: rgba(255,107,157,0.04);
-  }
-
-  body.cursor-click #cursor-dot {
-    transform: translate(-50%, -50%) scale(0.5);
-  }
-
-  body.cursor-click #cursor-ring {
-    width: 20px; height: 20px;
-    border-color: var(--accent);
-  }
-
-  a, button, .module-card, .interest-tag, .tech-pill, .counselor-card, .team-card, .flow-node, .arch-node, .problem-card, .opp-item, .deploy-card, .chat-send, .nav-cta, .btn-primary, .btn-secondary, .hamburger, [onclick] {
-    cursor: none !important;
-  }
+  * { cursor: none !important; }
 
   /* NOISE OVERLAY */
   body::before {
@@ -3096,35 +3052,37 @@
 
 <script>
 // =====================
-// CUSTOM CURSOR
+// CUSTOM CURSOR — instant dot, tight ring
 // =====================
 const dot = document.getElementById('cursor-dot');
 const ring = document.getElementById('cursor-ring');
-let mouseX = 0, mouseY = 0, ringX = 0, ringY = 0;
+let mx = 0, my = 0, rx = 0, ry = 0;
 
 document.addEventListener('mousemove', e => {
-  mouseX = e.clientX; mouseY = e.clientY;
-  dot.style.left = mouseX + 'px';
-  dot.style.top = mouseY + 'px';
-});
+  mx = e.clientX; my = e.clientY;
+  dot.style.transform = `translate(${mx - 4}px,${my - 4}px)`;
+}, { passive: true });
 
-(function animateRing() {
-  ringX += (mouseX - ringX) * 0.12;
-  ringY += (mouseY - ringY) * 0.12;
-  ring.style.left = ringX + 'px';
-  ring.style.top = ringY + 'px';
-  requestAnimationFrame(animateRing);
+(function loop() {
+  rx += (mx - rx) * 0.35;
+  ry += (my - ry) * 0.35;
+  ring.style.transform = `translate(${rx - 16}px,${ry - 16}px)`;
+  requestAnimationFrame(loop);
 })();
 
-document.querySelectorAll('a, button, .module-card, .interest-tag, .tech-pill, .counselor-card, .team-card, .flow-node, .arch-node, .problem-card, .opp-item, .deploy-card, [onclick]').forEach(el => {
-  el.addEventListener('mouseenter', () => document.body.classList.add('cursor-hover'));
-  el.addEventListener('mouseleave', () => document.body.classList.remove('cursor-hover'));
+// Hover effect via JS (no CSS class lag)
+document.addEventListener('mouseover', e => {
+  const t = e.target.closest('a,button,[onclick],.module-card,.counselor-card,.team-card,.problem-card,.opp-item,.interest-tag,.tech-pill,.modal-feature-item,.live-btn,.modal-cta');
+  if (t) {
+    dot.style.cssText += ';background:#ff6b9d;box-shadow:0 0 12px #ff6b9d;width:12px;height:12px;';
+    ring.style.cssText += ';border-color:rgba(255,107,157,0.5);width:44px;height:44px;margin-top:-6px;margin-left:-6px;';
+  } else {
+    dot.style.cssText = dot.style.cssText.replace(/background:[^;]+;box-shadow:[^;]+;width:[^;]+;height:[^;]+;/g,'');
+    ring.style.cssText = ring.style.cssText.replace(/border-color:[^;]+;width:[^;]+;height:[^;]+;margin[^;]+;margin[^;]+;/g,'');
+  }
 });
-
-document.addEventListener('mousedown', () => document.body.classList.add('cursor-click'));
-document.addEventListener('mouseup', () => document.body.classList.remove('cursor-click'));
-document.addEventListener('mouseleave', () => { dot.style.opacity='0'; ring.style.opacity='0'; });
-document.addEventListener('mouseenter', () => { dot.style.opacity='1'; ring.style.opacity='1'; });
+document.addEventListener('mousedown', () => { dot.style.transform = dot.style.transform; dot.style.opacity='0.6'; ring.style.opacity='0.4'; });
+document.addEventListener('mouseup', () => { dot.style.opacity='1'; ring.style.opacity='1'; });
 
 // =====================
 // SCROLL REVEAL
@@ -3239,112 +3197,873 @@ function openModule(key) {
   currentModule = key;
 
   document.getElementById('modalIcon').textContent = d.icon;
-  document.getElementById('modalIcon').style.cssText = `background:${d.color};border:1px solid ${d.border};`;
+  document.getElementById('modalIcon').style.cssText = `background:${d.color};border:1px solid ${d.border};width:68px;height:68px;border-radius:20px;display:flex;align-items:center;justify-content:center;font-size:2rem;margin-bottom:28px;`;
   document.getElementById('modalSubtitle').textContent = d.subtitle;
   document.getElementById('modalTitle').textContent = d.title;
   document.getElementById('modalDesc').textContent = d.desc;
   document.getElementById('modalStats').innerHTML = d.stats.map(s=>`<div class="modal-stat"><div class="modal-stat-num">${s.num}</div><div class="modal-stat-label">${s.label}</div></div>`).join('');
-  document.getElementById('modalFeatures').innerHTML = d.features.map(f=>`<div class="modal-feature-item"><div class="modal-feature-icon">${f.icon}</div><div><h5>${f.title}</h5><p>${f.desc}</p></div></div>`).join('');
+
+  // Make feature items clickable sub-tools
+  document.getElementById('modalFeatures').innerHTML = d.features.map((f,i)=>`
+    <div class="modal-feature-item" onclick="launchSubFeature('${key}',${i})" style="cursor:none;position:relative;overflow:hidden;transition:border-color 0.2s,background 0.2s;">
+      <div class="modal-feature-icon">${f.icon}</div>
+      <div style="flex:1;">
+        <h5 style="margin-bottom:4px;">${f.title}</h5>
+        <p>${f.desc}</p>
+      </div>
+      <div style="flex-shrink:0;font-size:0.7rem;font-family:'Space Mono',monospace;color:var(--accent);opacity:0.8;margin-left:8px;">Try it →</div>
+    </div>`).join('');
+
   document.getElementById('moduleInteractive').style.display = 'none';
   document.getElementById('moduleInteractive').innerHTML = '';
   document.getElementById('exploreBtn').style.display = 'inline-flex';
-  document.getElementById('exploreBtn').textContent = '✦ Launch This Module';
+  document.getElementById('exploreBtn').textContent = '✦ Launch Full Module';
 
   document.getElementById('moduleModal').classList.add('open');
   document.body.style.overflow = 'hidden';
 }
 
-function closeModal(e) { if (e.target === document.getElementById('moduleModal')) closeModalBtn(); }
-function closeModalBtn() { document.getElementById('moduleModal').classList.remove('open'); document.body.style.overflow = ''; }
-document.addEventListener('keydown', e => { if (e.key==='Escape') closeModalBtn(); });
+function closeModalBtn() {
+  document.getElementById('moduleModal').classList.remove('open');
+  document.body.style.overflow = '';
+}
+function closeModal(e) {
+  if (e.target === document.getElementById('moduleModal')) closeModalBtn();
+}
+function launchModuleInteractive() { launchSubFeature(currentModule, 0); }
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModalBtn(); });
 
 // =====================
-// LIVE MODULE INTERACTIONS
+// SUB-FEATURE LAUNCHER — every feature item is a live mini-tool
 // =====================
-function launchModuleInteractive() {
+function setArea(html) {
   const area = document.getElementById('moduleInteractive');
   area.style.display = 'block';
+  area.innerHTML = html;
   document.getElementById('exploreBtn').style.display = 'none';
-  document.getElementById('modalContent').scrollTop = 999;
+  setTimeout(() => {
+    const modal = document.querySelector('.module-modal');
+    if (modal) modal.scrollTop = modal.scrollHeight;
+  }, 50);
+}
 
-  if (currentModule === 'career') {
-    area.innerHTML = `
-      <div class="module-live">
-        <h4>🤖 AI Career Counselor — Live Demo</h4>
-        <input class="live-input" id="cc_name" placeholder="Your name (e.g. Arjun)">
-        <select class="live-select" id="cc_stream">
-          <option value="">Select your stream</option>
-          <option>Science (PCM)</option>
-          <option>Science (PCB)</option>
-          <option>Commerce</option>
-          <option>Arts / Humanities</option>
-          <option>Working Professional</option>
-        </select>
-        <input class="live-input" id="cc_interest" placeholder="Your top interest (e.g. coding, design, law...)">
-        <button class="live-btn" onclick="runCareerCounselor()">🚀 Generate My Career Roadmap</button>
-        <div class="live-result" id="cc_result"></div>
-      </div>`;
-  } else if (currentModule === 'interest') {
-    area.innerHTML = `
-      <div class="module-live">
-        <h4>🧭 Interest Finder — Personality Assessment</h4>
-        <p style="font-size:0.82rem;color:var(--text-muted);margin-bottom:16px;">Answer 3 quick questions to see your RIASEC profile:</p>
-        <select class="live-select" id="if_q1"><option value="">1. In your free time you prefer to...</option><option>Build or fix things</option><option>Research and analyze</option><option>Create art or music</option><option>Help others</option><option>Lead projects</option><option>Organize data</option></select>
-        <select class="live-select" id="if_q2"><option value="">2. Your best skill is...</option><option>Hands-on work</option><option>Critical thinking</option><option>Creativity</option><option>Communication</option><option>Persuasion</option><option>Detail & accuracy</option></select>
-        <select class="live-select" id="if_q3"><option value="">3. Ideal work environment...</option><option>Outdoors / labs</option><option>Research lab / library</option><option>Studio / open space</option><option>With people / community</option><option>Office / leadership role</option><option>Structured / systematic</option></select>
-        <button class="live-btn" onclick="runInterestFinder()">🌈 Show My Interest Profile</button>
-        <div class="live-result" id="if_result"></div>
-      </div>`;
-  } else if (currentModule === 'chatbot') {
-    area.innerHTML = `
-      <div class="module-live" style="padding:0;overflow:hidden;">
-        <div style="padding:16px 20px;border-bottom:1px solid var(--border);background:var(--bg);display:flex;align-items:center;gap:12px;">
-          <div style="width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent2));display:flex;align-items:center;justify-content:center;">💬</div>
-          <div>
-            <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:0.88rem;">Cluster AI</div>
-            <div style="font-size:0.7rem;color:var(--accent3);display:flex;align-items:center;gap:5px;"><span style="width:5px;height:5px;background:var(--accent3);border-radius:50%;display:inline-block;animation:pulse 1.5s infinite"></span>Online</div>
-          </div>
-        </div>
-        <div id="modal_chatBody" style="padding:16px;min-height:180px;max-height:260px;overflow-y:auto;display:flex;flex-direction:column;gap:12px;">
-          <div style="display:flex;gap:8px;"><div style="padding:10px 14px;background:var(--surface);border:1px solid var(--border);border-radius:14px;border-bottom-left-radius:3px;font-size:0.82rem;line-height:1.5;">Hi! Ask me anything about careers, colleges, exams, or your future. I give direct answers — no fluff! 🎯</div></div>
-        </div>
-        <div style="padding:12px 16px;border-top:1px solid var(--border);display:flex;gap:10px;">
-          <input id="modal_chatInput" class="live-input" style="margin:0;flex:1;" placeholder="Ask me anything..." onkeydown="if(event.key==='Enter')sendModalChat()">
-          <button class="live-btn" style="width:auto;padding:10px 18px;" onclick="sendModalChat()">➤</button>
-        </div>
-      </div>`;
-  } else if (currentModule === 'college') {
-    area.innerHTML = `
-      <div class="module-live">
-        <h4>🎓 College Advisor — Find Your Best Fit</h4>
-        <select class="live-select" id="ca_course"><option value="">Select course interest</option><option>Computer Science / IT</option><option>Mechanical Engineering</option><option>Medical / MBBS</option><option>Commerce / BBA / MBA</option><option>Design / Architecture</option><option>Law</option><option>Arts / Humanities</option></select>
-        <input class="live-input" id="ca_score" placeholder="Your board % or entrance rank (e.g. 92% or JEE 8000)">
-        <select class="live-select" id="ca_pref"><option value="">Location preference</option><option>North India</option><option>South India</option><option>West India</option><option>East India</option><option>Any / Open</option></select>
-        <button class="live-btn" onclick="runCollegeAdvisor()">🏛️ Find My Top Colleges</button>
-        <div class="live-result" id="ca_result"></div>
-      </div>`;
-  } else if (currentModule === 'xai') {
-    area.innerHTML = `
-      <div class="module-live">
-        <h4>🔬 Explainable AI — See How We Decide</h4>
-        <p style="font-size:0.82rem;color:var(--text-muted);margin-bottom:16px;">Enter a career and we'll show you exactly how Cluster's AI would evaluate it:</p>
-        <select class="live-select" id="xai_career"><option value="">Select a career to analyze</option><option>Software Engineer</option><option>UX Designer</option><option>Data Scientist</option><option>Doctor (MBBS)</option><option>IAS Officer</option><option>Chartered Accountant</option><option>Architect</option></select>
-        <button class="live-btn" onclick="runXAI()">🔍 Show AI Reasoning</button>
-        <div class="live-result" id="xai_result"></div>
-      </div>`;
-  } else if (currentModule === 'expert') {
-    area.innerHTML = `
-      <div class="module-live">
-        <h4>👥 Book an Expert Session</h4>
-        <input class="live-input" id="exp_name" placeholder="Your name">
-        <select class="live-select" id="exp_topic"><option value="">What do you need help with?</option><option>Career path confusion</option><option>College selection</option><option>Exam strategy (JEE/NEET/UPSC)</option><option>Career switch / abroad</option><option>Mental health & career anxiety</option><option>Entrepreneurship guidance</option></select>
-        <select class="live-select" id="exp_expert"><option value="">Choose expert type</option><option>Educational Psychologist</option><option>Career Strategist</option><option>College Admissions Expert</option><option>Clinical Psychologist</option><option>Entrepreneurship Mentor</option></select>
-        <button class="live-btn" onclick="runExpertBooking()">📅 Check Availability & Book</button>
-        <div class="live-result" id="exp_result"></div>
-      </div>`;
+function launchSubFeature(moduleKey, featureIndex) {
+  if (moduleKey === 'career') {
+    if (featureIndex === 0) showRIASEC();
+    else if (featureIndex === 1) showMarketData();
+    else if (featureIndex === 2) showRoadmap();
+    else showSkillsGap();
+  } else if (moduleKey === 'interest') {
+    if (featureIndex === 0) showGameInterest();
+    else if (featureIndex === 1) showInterestSpectrum();
+    else if (featureIndex === 2) showSubjectMap();
+    else showAdaptive();
+  } else if (moduleKey === 'chatbot') {
+    showModalChat();
+  } else if (moduleKey === 'college') {
+    if (featureIndex === 0) showCollegeMatch();
+    else if (featureIndex === 1) showTimeline();
+    else if (featureIndex === 2) showScholarships();
+    else showCultureScore();
+  } else if (moduleKey === 'xai') {
+    if (featureIndex === 0) showSHAP();
+    else if (featureIndex === 1) showDecisionTree();
+    else if (featureIndex === 2) showConfidence();
+    else showFairnessAudit();
+  } else if (moduleKey === 'expert') {
+    if (featureIndex === 0) showBookSession();
+    else if (featureIndex === 1) showReportReview();
+    else if (featureIndex === 2) showProgressTracker();
+    else showPeerMentor();
   }
 }
 
+// ── CAREER MODULE TOOLS ──────────────────────────────────────────
+function showRIASEC() {
+  const codes = ['R','I','A','S','E','C'];
+  const labels = {R:'Realistic',I:'Investigative',A:'Artistic',S:'Social',E:'Enterprising',C:'Conventional'};
+  const emojis = {R:'🔧',I:'🔬',A:'🎨',S:'🤝',E:'📢',C:'📋'};
+  const descs  = {R:'Building / repairing physical things',I:'Researching and analysing data',A:'Creating art, music or writing',S:'Helping and teaching others',E:'Leading teams and persuading people',C:'Organising systems and managing data'};
+  const careers= {R:'Engineer, Technician, Pilot, Surgeon',I:'Scientist, Data Analyst, Researcher, Doctor',A:'Designer, Writer, Filmmaker, Architect',S:'Counselor, Teacher, HR, Social Worker',E:'Entrepreneur, Manager, Lawyer, Politician',C:'CA, Banker, Actuary, Administrator'};
+  let rows = codes.map(k => {
+    let btns = [1,2,3,4,5].map(n =>
+      `<button onclick="this.parentNode.querySelectorAll('button').forEach(b=>{b.style.background='var(--surface2)'});this.style.background='var(--accent)';document.getElementById('rv_${k}').value=${n};" style="width:28px;height:28px;border-radius:50%;border:1px solid var(--border);background:var(--surface2);color:var(--text);font-size:0.75rem;">${n}</button>`
+    ).join('');
+    return `<div style="display:flex;align-items:center;gap:12px;margin-bottom:10px;background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:10px 14px;">
+      <span style="font-size:1.1rem;">${emojis[k]}</span>
+      <span style="flex:1;font-size:0.8rem;">${descs[k]}</span>
+      <div style="display:flex;gap:5px;">${btns}</div>
+      <input type="hidden" id="rv_${k}" value="0">
+    </div>`;
+  }).join('');
+  setArea(`<div class="module-live">
+    <h4>🧠 RIASEC Profiling — Live Assessment</h4>
+    <p style="font-size:0.82rem;color:var(--text-muted);margin-bottom:14px;">Rate how much each activity appeals to you (1=not at all, 5=love it):</p>
+    ${rows}
+    <button class="live-btn" onclick="calcRIASEC()">🧠 Reveal My RIASEC Code</button>
+    <div class="live-result" id="riasec_result"></div>
+  </div>`);
+  window._riasecData = {codes, labels, careers};
+}
+
+function calcRIASEC() {
+  const {codes, labels, careers} = window._riasecData;
+  const scores = codes.map(k => ({k, v: parseInt(document.getElementById('rv_'+k).value)||1}));
+  scores.sort((a,b) => b.v - a.v);
+  const top = scores[0];
+  const bars = scores.map(s => `<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
+    <div style="width:90px;font-size:0.75rem;">${labels[s.k]}</div>
+    <div style="flex:1;height:8px;background:var(--surface2);border-radius:4px;overflow:hidden;">
+      <div style="height:100%;width:${s.v*20}%;background:linear-gradient(90deg,var(--accent),var(--accent2));border-radius:4px;transition:width 0.8s;"></div>
+    </div>
+    <div style="font-size:0.72rem;color:var(--text-muted);">${s.v*20}%</div>
+  </div>`).join('');
+  const res = document.getElementById('riasec_result');
+  res.innerHTML = `<h5>🌈 Your RIASEC Profile</h5>${bars}<br>
+    <strong style="color:var(--accent3)">Dominant: ${labels[top.k]}</strong>
+    <p style="margin-top:8px;">Best careers: <strong>${window._riasecData.careers[top.k]}</strong></p>`;
+  res.classList.add('show');
+}
+
+function showMarketData() {
+  setArea(`<div class="module-live">
+    <h4>📈 Live Market Data — Career Demand Tracker</h4>
+    <p style="font-size:0.82rem;color:var(--text-muted);margin-bottom:14px;">Select a career field to see current demand and salary trends:</p>
+    <select class="live-select" id="mkt_field">
+      <option value="">Choose a career field</option>
+      <option>Software Engineering</option><option>Data Science / AI</option>
+      <option>UX / Product Design</option><option>Medicine / Healthcare</option>
+      <option>Finance / Banking</option><option>Law</option>
+      <option>Civil Services / IAS</option><option>Entrepreneurship</option>
+      <option>Content / Media</option>
+    </select>
+    <button class="live-btn" onclick="calcMarket()">📊 Fetch Market Data</button>
+    <div class="live-result" id="mkt_result"></div>
+  </div>`);
+}
+
+function calcMarket() {
+  const data = {
+    'Software Engineering':{demand:94,growth:'+28% YoY',jobs:'4.2L+ openings',salary:'₹6L–80L',top:'Google, Amazon, Flipkart, Razorpay',skill:'DSA, System Design, Cloud'},
+    'Data Science / AI':{demand:91,growth:'+42% YoY',jobs:'1.8L+ openings',salary:'₹8L–60L',top:'Amazon, Microsoft, Swiggy, PhonePe',skill:'Python, ML, Statistics'},
+    'UX / Product Design':{demand:82,growth:'+31% YoY',jobs:'85K+ openings',salary:'₹5L–45L',top:'Zomato, CRED, Meesho, Adobe',skill:'Figma, Research, Prototyping'},
+    'Medicine / Healthcare':{demand:88,growth:'+18% YoY',jobs:'Perpetual shortage',salary:'₹5L–80L+',top:'AIIMS, Apollo, Fortis, WHO',skill:'Clinical skills, Research, Empathy'},
+    'Finance / Banking':{demand:79,growth:'+15% YoY',jobs:'2.1L+ openings',salary:'₹4L–50L',top:'Goldman Sachs, JP Morgan, HDFC, SEBI',skill:'Excel, Financial modeling, CFA/CA'},
+    'Law':{demand:75,growth:'+12% YoY',jobs:'Growing rapidly',salary:'₹5L–60L',top:'AZB, Cyril Amarchand, Supreme Court',skill:'Research, Advocacy, Drafting'},
+    'Civil Services / IAS':{demand:85,growth:'Stable',jobs:'~1000 selections/yr',salary:'₹56K–2.5L/month + perks',top:'UPSC, State PSCs',skill:'GS, Current Affairs, Essay'},
+    'Entrepreneurship':{demand:78,growth:'+35% startup ecosystem',jobs:'Create your own',salary:'₹0 to unlimited',top:'Y Combinator, IIT incubators, Sequoia',skill:'Sales, Product, Grit'},
+    'Content / Media':{demand:71,growth:'+55% YoY (digital)',jobs:'Booming',salary:'₹3L–30L+',top:'YouTube, Netflix, Times Group, startups',skill:'Writing, Video editing, SEO'},
+  };
+  const field = document.getElementById('mkt_field').value;
+  const d = data[field];
+  if (!d) { alert('Please select a field'); return; }
+  const res = document.getElementById('mkt_result');
+  res.innerHTML = `<h5>📊 Market Intelligence: ${field}</h5>
+    <div style="margin-bottom:12px;">
+      <div style="font-size:0.72rem;color:var(--text-muted);margin-bottom:5px;">DEMAND SCORE</div>
+      <div style="height:10px;background:var(--surface2);border-radius:5px;overflow:hidden;">
+        <div style="height:100%;width:${d.demand}%;background:linear-gradient(90deg,var(--accent3),var(--accent));border-radius:5px;transition:width 1s;"></div>
+      </div>
+      <div style="font-family:'Space Mono',monospace;font-size:0.8rem;color:var(--accent3);margin-top:4px;">${d.demand}/100</div>
+    </div>
+    <p>📈 <strong>Growth:</strong> ${d.growth}<br>💼 <strong>Openings:</strong> ${d.jobs}<br>💰 <strong>Salary:</strong> ${d.salary}<br>🏢 <strong>Top recruiters:</strong> ${d.top}<br>🛠️ <strong>Key skills:</strong> ${d.skill}</p>`;
+  res.classList.add('show');
+}
+
+function showRoadmap() {
+  setArea(`<div class="module-live">
+    <h4>🗺️ 5-Year Career Roadmap Builder</h4>
+    <input class="live-input" id="rm_goal" placeholder="Target career (e.g. Software Engineer at Google)">
+    <select class="live-select" id="rm_current">
+      <option value="">Current stage</option>
+      <option>Class 10 student</option><option>Class 12 student</option>
+      <option>College fresher</option><option>College 2nd/3rd year</option>
+      <option>Final year / Graduate</option><option>Working professional</option>
+    </select>
+    <button class="live-btn" onclick="calcRoadmap()">🚀 Build My Roadmap</button>
+    <div class="live-result" id="rm_result"></div>
+  </div>`);
+}
+
+function calcRoadmap() {
+  const goal = document.getElementById('rm_goal').value || 'your target career';
+  const stage = document.getElementById('rm_current').value;
+  if (!stage) { alert('Please select your current stage'); return; }
+  const maps = {
+    'Class 10 student':['Focus on academics — score 90%+ in boards','Choose the right stream (Science/Commerce/Arts) based on genuine interest','Explore interests: coding clubs, debates, science fairs','Prepare for your primary entrance exam (JEE/NEET/CLAT/CUET)','Secure admission to a top college with a clear goal'],
+    'Class 12 student':['Ace board exams — they matter for cutoffs and scholarships','Clear your primary entrance exam (JEE/NEET/CAT/CLAT)','Research colleges deeply before applying','Build one portfolio project or skill during summer break','Start college with clear intention and a 4-year plan'],
+    'College fresher':['Explore widely in Year 1 — clubs, hackathons, competitions','Pick your specialisation by end of Year 1','Land your first internship in Year 2 summer','Build your GitHub / Behance / LinkedIn profile actively','Convert internship to PPO or build a strong referral network'],
+    'College 2nd/3rd year':['Deep-dive into your domain — go beyond the syllabus','Apply for 2 internships minimum this year','Start competitive prep (GATE / CAT / placements / GRE)','Network actively — reach out to 5 alumni per month','Begin interview prep 6 months before placement season'],
+    'Final year / Graduate':['Lock in your first job offer or postgrad admission','If no offer yet, upskill for 3 months then re-apply','Consider UPSC / GMAT / GRE if pivoting careers','Build financial runway for the first 6 months post-college','Set clear 1-year targets and review them quarterly'],
+    'Working professional':['Define your next-role goal with specific job titles','Identify the skill gap and start a 3-month learning plan','Build a portfolio of impact metrics from your current role','Apply internally or start interviewing externally','Negotiate confidently — experience is your leverage'],
+  };
+  const steps = maps[stage] || [];
+  const res = document.getElementById('rm_result');
+  res.innerHTML = `<h5>🗺️ 5-Year Roadmap → ${goal}</h5>` +
+    steps.map((s,i) => `<div style="display:flex;gap:12px;align-items:flex-start;margin-bottom:12px;">
+      <div style="width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent2));display:flex;align-items:center;justify-content:center;font-family:'Space Mono',monospace;font-size:0.68rem;font-weight:700;flex-shrink:0;">Y${i+1}</div>
+      <div style="padding-top:5px;font-size:0.83rem;">${s}</div>
+    </div>`).join('') +
+    `<p style="margin-top:10px;font-size:0.75rem;color:var(--accent);">✦ Book a 1:1 expert session for a fully customised version of this roadmap.</p>`;
+  res.classList.add('show');
+}
+
+function showSkillsGap() {
+  setArea(`<div class="module-live">
+    <h4>⚖️ Skills Gap Analyser</h4>
+    <select class="live-select" id="sg_role" onchange="renderSkillBars()">
+      <option value="">Select target role</option>
+      <option>Software Engineer (FAANG)</option><option>Data Scientist</option>
+      <option>UX Designer</option><option>Product Manager</option>
+      <option>IAS Officer</option><option>Investment Banker</option><option>Doctor (MBBS)</option>
+    </select>
+    <div id="sg_skills_area"></div>
+    <button class="live-btn" id="sg_btn" style="display:none;" onclick="calcSkillGap()">🔍 Analyse My Gap</button>
+    <div class="live-result" id="sg_result"></div>
+  </div>`);
+  window._roleSkills = {
+    'Software Engineer (FAANG)':[['DSA & Algorithms',5],['System Design',5],['Programming',4],['Problem Solving',5],['Communication',3]],
+    'Data Scientist':[['Python / R',5],['Statistics',5],['Machine Learning',4],['SQL',4],['Business Acumen',3]],
+    'UX Designer':[['Figma / Design Tools',5],['User Research',4],['Wireframing',4],['Visual Design',3],['Presentation',3]],
+    'Product Manager':[['Product Thinking',5],['Data Analysis',4],['Stakeholder Management',4],['Technical Literacy',3],['Communication',5]],
+    'IAS Officer':[['General Studies',5],['Current Affairs',5],['Essay Writing',4],['Analytical Reasoning',4],['Ethics',5]],
+    'Investment Banker':[['Financial Modeling',5],['Valuation',5],['Excel / PowerPoint',4],['Networking',4],['Market Knowledge',4]],
+    'Doctor (MBBS)':[['Biology (NCERT)',5],['Physics & Chemistry',4],['Clinical Knowledge',5],['Communication',4],['Medical Ethics',4]],
+  };
+}
+
+function renderSkillBars() {
+  const role = document.getElementById('sg_role').value;
+  const skills = (window._roleSkills||{})[role];
+  if (!skills) return;
+  document.getElementById('sg_skills_area').innerHTML = skills.map(([name,req]) => `
+    <div class="sg-row" data-skill="${name}" data-req="${req}" style="display:flex;align-items:center;gap:10px;margin-bottom:10px;background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:10px 14px;">
+      <span style="flex:1;font-size:0.8rem;">${name}</span>
+      <div style="display:flex;gap:4px;">${[1,2,3,4,5].map(n=>`<button onclick="this.closest('.sg-row').querySelectorAll('button').forEach(b=>{b.style.background='var(--surface2)';delete b.dataset.picked});this.style.background='var(--accent)';this.dataset.picked='${n}';" style="width:26px;height:26px;border-radius:50%;border:1px solid var(--border);background:var(--surface2);color:var(--text);font-size:0.72rem;">⭐</button>`).join('')}</div>
+    </div>`).join('');
+  document.getElementById('sg_btn').style.display = 'block';
+}
+
+function calcSkillGap() {
+  const rows = document.querySelectorAll('.sg-row');
+  const results = [...rows].map(row => {
+    const name = row.dataset.skill;
+    const req = parseInt(row.dataset.req);
+    const picked = row.querySelector('[data-picked]');
+    const cur = picked ? parseInt(picked.dataset.picked) : 0;
+    const gap = Math.max(0, req - cur);
+    return {name, req, cur, gap};
+  });
+  const res = document.getElementById('sg_result');
+  res.innerHTML = `<h5>⚖️ Skills Gap Report</h5>` +
+    results.map(r => {
+      const col = r.gap === 0 ? 'var(--accent3)' : r.gap <= 1 ? 'var(--accent)' : 'var(--accent2)';
+      const label = r.gap === 0 ? '✓ Ready' : `Gap: ${r.gap} levels`;
+      return `<div style="margin-bottom:12px;">
+        <div style="display:flex;justify-content:space-between;font-size:0.78rem;margin-bottom:4px;">
+          <span>${r.name}</span><span style="color:${col};">${label}</span>
+        </div>
+        <div style="height:8px;background:var(--surface2);border-radius:4px;overflow:hidden;">
+          <div style="height:100%;width:${r.cur/5*100}%;background:linear-gradient(90deg,var(--accent3),var(--accent));border-radius:4px;transition:width 0.8s;"></div>
+        </div>
+      </div>`;
+    }).join('') +
+    `<p style="font-size:0.75rem;color:var(--text-muted);margin-top:8px;">Focus on the gaps first. Book an expert session for a personalised upskilling plan.</p>`;
+  res.classList.add('show');
+}
+
+// ── INTEREST MODULE TOOLS ─────────────────────────────────────────
+function showGameInterest() {
+  window._gameState = {
+    rounds:[
+      {q:'If you had a free Saturday you would…',opts:[['🛠️ Build something — app, furniture, gadget','R'],['📖 Deep-dive into a research paper or documentary','I'],['🎨 Create art, music, or write a story','A'],['🤝 Volunteer or hang out with friends','S'],['📈 Start a side hustle or plan a project','E'],['📂 Organise your room, notes, or finances','C']]},
+      {q:'At a company you would most want to…',opts:[['🔧 Work in engineering or product dev','R'],['🔬 Run experiments and publish findings','I'],['✏️ Lead design and creative direction','A'],['💬 Build community and manage people','S'],['🏆 Lead the company and set strategy','E'],['📊 Manage operations and compliance','C']]},
+      {q:'Your dream project is…',opts:[['🚗 Building an electric car from scratch','R'],['🧬 Solving a rare disease','I'],['🎬 Directing an award-winning film','A'],['🌍 Running an NGO that changes lives','S'],['🦄 Founding a unicorn startup','E'],['🏦 Managing a billion-dollar fund','C']]},
+    ],
+    scores:{R:0,I:0,A:0,S:0,E:0,C:0},
+    qi:0,
+    names:{R:'Realistic',I:'Investigative',A:'Artistic',S:'Social',E:'Enterprising',C:'Conventional'},
+    careers:{R:'Engineering, Surgery, Piloting, Architecture',I:'Research, Medicine, Data Science, Academia',A:'Design, Filmmaking, Writing, Music',S:'Psychology, Teaching, HR, Social Work',E:'Entrepreneurship, Law, Management, Politics',C:'Finance, Accounting, Administration, Logistics'},
+  };
+  setArea(`<div class="module-live"><h4>🎮 Gamified Interest Discovery</h4><div id="game_q"></div><div class="live-result" id="game_result"></div></div>`);
+  renderGameQ();
+}
+
+function renderGameQ() {
+  const g = window._gameState;
+  if (g.qi >= g.rounds.length) {
+    const sorted = Object.entries(g.scores).sort((a,b)=>b[1]-a[1]);
+    const top = sorted[0];
+    document.getElementById('game_q').style.display = 'none';
+    const res = document.getElementById('game_result');
+    res.innerHTML = `<h5>🌈 Your Interest Profile</h5>` +
+      sorted.map(([k,v]) => `<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
+        <div style="width:90px;font-size:0.75rem;">${g.names[k]}</div>
+        <div style="flex:1;height:8px;background:var(--surface2);border-radius:4px;overflow:hidden;">
+          <div style="height:100%;width:${Math.round(v/g.rounds.length*100)}%;background:linear-gradient(90deg,var(--accent),var(--accent2));border-radius:4px;"></div>
+        </div>
+        <div style="font-size:0.72rem;color:var(--text-muted);">${Math.round(v/g.rounds.length*100)}%</div>
+      </div>`).join('') +
+      `<br><strong style="color:var(--accent3)">Your type: ${g.names[top[0]]}</strong>
+       <p style="margin-top:6px;font-size:0.82rem;">Best careers: <strong>${g.careers[top[0]]}</strong></p>`;
+    res.classList.add('show');
+    return;
+  }
+  const r = g.rounds[g.qi];
+  document.getElementById('game_q').innerHTML =
+    `<div style="font-family:'Syne',sans-serif;font-weight:700;margin-bottom:14px;font-size:0.9rem;">Round ${g.qi+1}/${g.rounds.length}: ${r.q}</div>` +
+    r.opts.map(([label,code]) =>
+      `<button onclick="window._gameState.scores['${code}']++;window._gameState.qi++;renderGameQ();" style="display:block;width:100%;text-align:left;padding:10px 14px;margin-bottom:8px;background:var(--surface2);border:1px solid var(--border);border-radius:10px;color:var(--text);font-size:0.82rem;">${label}</button>`
+    ).join('');
+}
+
+function showInterestSpectrum() {
+  const items = [['💻 Technology','tech'],['🎨 Design & Art','art'],['🔬 Science & Research','sci'],['💼 Business','biz'],['🏥 Health & Medicine','health'],['⚖️ Law & Policy','law'],['📰 Media & Writing','media'],['🤝 Social Impact','social'],['🎓 Education','edu'],['🏗️ Engineering','eng'],['🎵 Music & Performance','music'],['🌿 Environment','env']];
+  const btns = items.map(([l,k]) =>
+    `<button onclick="this.classList.toggle('selected');this.style.background=this.classList.contains('selected')?'var(--accent)':'var(--surface2)';" data-key="${k}" style="padding:8px 14px;border-radius:100px;border:1px solid var(--border);background:var(--surface2);color:var(--text);font-size:0.8rem;">${l}</button>`
+  ).join('');
+  setArea(`<div class="module-live">
+    <h4>🌈 Interest Spectrum Report</h4>
+    <p style="font-size:0.82rem;color:var(--text-muted);margin-bottom:14px;">Click all areas that spark even a little curiosity in you:</p>
+    <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px;">${btns}</div>
+    <button class="live-btn" onclick="calcSpectrum()">🌈 Generate My Spectrum</button>
+    <div class="live-result" id="spec_result"></div>
+  </div>`);
+  window._specMap = {tech:'Software Engineer, AI Researcher, Product Manager',art:'UX Designer, Creative Director, Illustrator',sci:'Research Scientist, Data Analyst, Biotech Researcher',biz:'Entrepreneur, Consultant, Marketing Manager',health:'Doctor, Physiotherapist, Public Health Expert',law:'Advocate, Policy Analyst, IAS Officer',media:'Journalist, Content Creator, Filmmaker',social:'NGO Leader, Social Worker, Community Manager',edu:'Teacher, EdTech Builder, Professor',eng:'Civil / Mechanical Engineer, Architect',music:'Composer, Sound Designer, Music Producer',env:'Environmental Scientist, Sustainability Consultant'};
+}
+
+function calcSpectrum() {
+  const sel = [...document.querySelectorAll('[data-key].selected')].map(b => b.dataset.key);
+  if (!sel.length) { alert('Pick at least one area'); return; }
+  const res = document.getElementById('spec_result');
+  res.innerHTML = `<h5>🌈 Your Interest Spectrum</h5>
+    <p style="margin-bottom:12px;font-size:0.82rem;">Based on your ${sel.length} selected areas, Cluster recommends:</p>` +
+    sel.map(k => `<div style="margin-bottom:10px;background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:10px 14px;">
+      <div style="font-size:0.82rem;font-weight:600;margin-bottom:3px;">${document.querySelector('[data-key="'+k+'"]').textContent}</div>
+      <div style="font-size:0.75rem;color:var(--text-muted);">${(window._specMap||{})[k]||''}</div>
+    </div>`).join('') +
+    `<p style="font-size:0.75rem;color:var(--accent);margin-top:8px;">✦ Multi-interest = T-shaped professional advantage.</p>`;
+  res.classList.add('show');
+}
+
+function showSubjectMap() {
+  const subjects = [['📐 Maths','math'],['🧪 Physics','phys'],['🧬 Biology','bio'],['⚗️ Chemistry','chem'],['📊 Economics','econ'],['📚 English','eng'],['🏛️ History','hist'],['🎨 Fine Arts','arts'],['💻 Computer Science','cs'],['🗣️ Social Studies','soc'],['🌏 Geography','geo'],['⚖️ Political Science','polsci']];
+  const btns = subjects.map(([l,k]) =>
+    `<button onclick="this.classList.toggle('selected');this.style.background=this.classList.contains('selected')?'var(--accent2)':'var(--surface2)';" data-subj="${k}" style="padding:8px 14px;border-radius:100px;border:1px solid var(--border);background:var(--surface2);color:var(--text);font-size:0.8rem;">${l}</button>`
+  ).join('');
+  setArea(`<div class="module-live">
+    <h4>🔗 Subject–Career Correlation Map</h4>
+    <p style="font-size:0.82rem;color:var(--text-muted);margin-bottom:12px;">Select your favourite subjects:</p>
+    <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px;">${btns}</div>
+    <button class="live-btn" onclick="calcSubjectMap()">🔗 Map My Subjects to Careers</button>
+    <div class="live-result" id="subj_result"></div>
+  </div>`);
+  window._subjMap = {math:['Data Scientist','Actuary','Quantitative Analyst','Software Engineer','Economist'],phys:['Engineer','Astrophysicist','Research Scientist','Defence Scientist'],bio:['Doctor','Biologist','Pharmacist','Biotechnologist','Environmental Scientist'],chem:['Chemical Engineer','Pharmacist','Research Chemist','Food Scientist'],econ:['Economist','Policy Analyst','Investment Banker','IAS Officer'],eng:['Journalist','UX Writer','Lawyer','Author','PR Specialist'],hist:['IAS Officer','Historian','Museum Curator','Policy Researcher'],arts:['UX Designer','Architect','Filmmaker','Graphic Designer'],cs:['Software Engineer','AI/ML Engineer','Cybersecurity Analyst','DevOps'],soc:['Social Worker','NGO Leader','HR Manager','Community Builder'],geo:['Urban Planner','GIS Analyst','Environmental Scientist','Travel Writer'],polsci:['IAS/IPS Officer','Journalist','Diplomat','Lawyer']};
+}
+
+function calcSubjectMap() {
+  const sel = [...document.querySelectorAll('[data-subj].selected')].map(b => b.dataset.subj);
+  if (!sel.length) { alert('Select at least one subject'); return; }
+  const careers = [...new Set(sel.flatMap(k => (window._subjMap||{})[k]||[]))].slice(0,8);
+  const res = document.getElementById('subj_result');
+  res.innerHTML = `<h5>🔗 Career Matches for Your Subjects</h5>` +
+    careers.map((c,i) => `<div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
+      <div style="width:24px;height:24px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent2));display:flex;align-items:center;justify-content:center;font-size:0.68rem;font-family:'Space Mono',monospace;flex-shrink:0;">${i+1}</div>
+      <span style="font-size:0.85rem;">${c}</span>
+    </div>`).join('') +
+    `<p style="margin-top:10px;font-size:0.75rem;color:var(--accent);">✦ More subject overlaps = stronger natural fit for that career.</p>`;
+  res.classList.add('show');
+}
+
+function showAdaptive() {
+  window._adaptState = {
+    qi: 0,
+    scores: {analytical:0, experimental:0, collaborative:0, systematic:0},
+    qs: [
+      {q:'When you solve a problem, you prefer to…',a:[['Break it into logical steps','analytical'],['Try different things and see what works','experimental'],['Talk it through with someone','collaborative'],['Follow a proven system','systematic']]},
+      {q:'Your friends would describe you as…',a:[['The thinker','analytical'],['The creator','experimental'],['The helper','collaborative'],['The organiser','systematic']]},
+      {q:'You feel most alive when…',a:[['You crack a hard problem','analytical'],['You make something new','experimental'],['You help someone succeed','collaborative'],['You complete a perfect plan','systematic']]},
+      {q:'On a team project, you naturally…',a:[['Analyse data and strategy','analytical'],['Generate creative ideas','experimental'],['Keep everyone motivated','collaborative'],['Manage timelines and tasks','systematic']]},
+      {q:'Your ideal work output is…',a:[['A rigorous report or model','analytical'],['A prototype or creative piece','experimental'],['A workshop or training session','collaborative'],['A perfectly executed system','systematic']]},
+    ],
+    typeMap:{analytical:'Data Scientist, Lawyer, IAS Officer, Research Scientist',experimental:'Entrepreneur, UX Designer, Artist, Engineer',collaborative:'Counselor, Teacher, HR Manager, Community Leader',systematic:'CA, Operations Manager, Banker, Administrator'},
+  };
+  setArea(`<div class="module-live"><h4>🔄 Adaptive Psychometric Assessment</h4><p style="font-size:0.82rem;color:var(--text-muted);margin-bottom:14px;">5 quick questions — answer honestly:</p><div id="adapt_q"></div><div class="live-result" id="adapt_result"></div></div>`);
+  renderAdaptQ();
+}
+
+function renderAdaptQ() {
+  const g = window._adaptState;
+  if (g.qi >= g.qs.length) {
+    const top = Object.entries(g.scores).sort((a,b)=>b[1]-a[1])[0];
+    document.getElementById('adapt_q').style.display = 'none';
+    const res = document.getElementById('adapt_result');
+    res.innerHTML = `<h5>🔄 Your Cognitive Style: <span style="color:var(--accent3)">${top[0].charAt(0).toUpperCase()+top[0].slice(1)}</span></h5>
+      <p style="font-size:0.82rem;margin-bottom:10px;">Your thinking makes you excel in <strong>${top[0]}</strong> problem-solving roles.</p>
+      <p><strong>Career matches:</strong><br>${g.typeMap[top[0]]}</p>
+      <p style="margin-top:10px;font-size:0.75rem;color:var(--accent);">✦ Combine with your RIASEC code for the most precise career match.</p>`;
+    res.classList.add('show');
+    return;
+  }
+  const q = g.qs[g.qi];
+  document.getElementById('adapt_q').innerHTML =
+    `<div style="font-family:'Syne',sans-serif;font-weight:700;margin-bottom:12px;font-size:0.9rem;">Q${g.qi+1}: ${q.q}</div>` +
+    q.a.map(([label,type]) =>
+      `<button onclick="window._adaptState.scores['${type}']++;window._adaptState.qi++;renderAdaptQ();" style="display:block;width:100%;text-align:left;padding:10px 14px;margin-bottom:8px;background:var(--surface2);border:1px solid var(--border);border-radius:10px;color:var(--text);font-size:0.82rem;">${label}</button>`
+    ).join('');
+}
+
+// ── CHATBOT TOOL ─────────────────────────────────────────────────
+function showModalChat() {
+  setArea(`<div class="module-live" style="padding:0;overflow:hidden;border-radius:16px;">
+    <div style="padding:14px 18px;border-bottom:1px solid var(--border);background:var(--bg);display:flex;align-items:center;gap:10px;">
+      <div style="width:30px;height:30px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent2));display:flex;align-items:center;justify-content:center;">💬</div>
+      <div><div style="font-family:'Syne',sans-serif;font-weight:700;font-size:0.86rem;">Cluster AI</div><div style="font-size:0.68rem;color:var(--accent3);">● Online</div></div>
+    </div>
+    <div id="modal_chatBody" style="padding:14px;min-height:160px;max-height:240px;overflow-y:auto;display:flex;flex-direction:column;gap:10px;">
+      <div style="display:flex;gap:8px;"><div style="padding:10px 13px;background:var(--surface);border:1px solid var(--border);border-radius:12px;border-bottom-left-radius:3px;font-size:0.8rem;line-height:1.5;">Hi! Ask me anything about careers, colleges or exams. 🎯</div></div>
+    </div>
+    <div style="padding:10px 14px;border-top:1px solid var(--border);display:flex;gap:8px;">
+      <input id="modal_chatInput" class="live-input" style="margin:0;flex:1;padding:8px 12px;" placeholder="Ask anything…" onkeydown="if(event.key==='Enter')sendModalChat()">
+      <button class="live-btn" style="width:auto;padding:8px 16px;margin:0;" onclick="sendModalChat()">➤</button>
+    </div>
+  </div>`);
+}
+
+// ── COLLEGE MODULE TOOLS ──────────────────────────────────────────
+function showCollegeMatch() {
+  setArea(`<div class="module-live">
+    <h4>🔍 Smart College Matching</h4>
+    <select class="live-select" id="ca_course"><option value="">Select course</option>
+      <option>Computer Science / IT</option><option>Mechanical Engineering</option>
+      <option>Medical / MBBS</option><option>Commerce / BBA / MBA</option>
+      <option>Design / Architecture</option><option>Law</option><option>Arts / Humanities</option>
+    </select>
+    <input class="live-input" id="ca_score" placeholder="Score: board % (e.g. 92%), JEE rank (e.g. 5000), NEET (e.g. 620), CAT %ile (e.g. 97), CLAT rank (e.g. 400)">
+    <select class="live-select" id="ca_pref"><option value="">Location (optional)</option>
+      <option>North India</option><option>South India</option><option>West India</option><option>East India</option><option>Any / Open</option>
+    </select>
+    <button class="live-btn" onclick="runCollegeAdvisor()">🔍 Find My Best Colleges</button>
+    <div class="live-result" id="ca_result"></div>
+  </div>`);
+}
+
+function showTimeline() {
+  setArea(`<div class="module-live">
+    <h4>📅 Application Timeline Planner</h4>
+    <select class="live-select" id="tl_exam">
+      <option value="">Which exam / process?</option>
+      <option>JEE Main</option><option>JEE Advanced</option><option>NEET</option>
+      <option>CAT</option><option>CLAT</option><option>CUET</option>
+      <option>UCEED / NID DAT</option><option>GMAT (MBA Abroad)</option>
+    </select>
+    <button class="live-btn" onclick="calcTimeline()">📅 Generate Timeline</button>
+    <div class="live-result" id="tl_result"></div>
+  </div>`);
+  window._timelines = {
+    'JEE Main':[['Register on jeemain.nta.nic.in','Oct–Nov'],['Download Admit Card','Dec–Jan'],['Session 1 Exam','Jan'],['Session 2 Exam','Apr'],['Results','Apr–May'],['JoSAA Counselling','Jun–Jul']],
+    'JEE Advanced':[['Eligible after JEE Main Top 2.5L','Apr'],['Registration Opens','Apr–May'],['Admit Card','May'],['Exam Day','May'],['Results','Jun'],['JoSAA Counselling for IITs','Jun–Jul']],
+    'NEET':[['Application Form','Feb–Mar'],['Admit Card','Apr–May'],['Exam Day (single day)','May'],['Answer Key','May'],['Results','Jun'],['MCC Counselling','Jul–Aug']],
+    'CAT':[['Notification Released','Jul'],['Registration','Aug–Sep'],['Admit Card','Nov'],['Exam (3 slots)','Nov–Dec'],['Results','Jan'],['IIM GD-PI-WAT','Feb–Mar'],['Final Offers','Apr–May']],
+    'CLAT':[['Application Form','Jan–Feb'],['Admit Card','Apr'],['Exam Day','May'],['Results','May'],['Counselling Rounds','Jun–Aug']],
+    'CUET':[['Registration','Feb–Mar'],['Admit Card','Apr–May'],['Exam (CBT)','May–Jun'],['Results','Jul'],['University Admissions','Jul–Aug']],
+    'UCEED / NID DAT':[['UCEED Registration','Oct–Nov'],['NID DAT Registration','Sep–Oct'],['UCEED Exam','Jan'],['NID DAT Prelims','Jan'],['NID DAT Mains / Studio Test','Mar–Apr'],['Results & Admissions','Apr–May']],
+    'GMAT (MBA Abroad)':[['Create mba.com account','Anytime'],['Book GMAT (3 months ahead)','Ongoing'],['Target score: 700+','Study 3–6 months'],['R1 Deadlines (top schools)','Sep–Oct'],['R2 Deadlines (most popular)','Jan'],['Offers','Mar–Apr'],['Enroll','Jul–Aug']],
+  };
+}
+
+function calcTimeline() {
+  const exam = document.getElementById('tl_exam').value;
+  if (!exam) { alert('Please select an exam'); return; }
+  const steps = (window._timelines||{})[exam] || [];
+  const res = document.getElementById('tl_result');
+  res.innerHTML = `<h5>📅 ${exam} — Full Timeline</h5>` +
+    steps.map(([step,when]) => `<div style="display:flex;gap:12px;align-items:flex-start;margin-bottom:10px;">
+      <div style="flex-shrink:0;font-family:'Space Mono',monospace;font-size:0.68rem;color:var(--accent);background:rgba(108,99,255,0.1);border:1px solid rgba(108,99,255,0.2);border-radius:6px;padding:3px 8px;white-space:nowrap;">${when}</div>
+      <div style="font-size:0.82rem;padding-top:2px;">${step}</div>
+    </div>`).join('') +
+    `<p style="margin-top:10px;font-size:0.75rem;color:var(--accent);">✦ Set calendar reminders for each step. Missing a deadline = losing a year.</p>`;
+  res.classList.add('show');
+}
+
+function showScholarships() {
+  setArea(`<div class="module-live">
+    <h4>💰 Scholarship Finder</h4>
+    <select class="live-select" id="sch_stream">
+      <option value="">Your stream</option>
+      <option>Science (Engineering)</option><option>Science (Medical)</option>
+      <option>Commerce / Management</option><option>Arts / Humanities</option>
+      <option>Design / Fine Arts</option><option>Any / Open</option>
+    </select>
+    <select class="live-select" id="sch_cat">
+      <option value="">Category</option>
+      <option>General</option><option>OBC</option><option>SC/ST</option>
+      <option>EWS</option><option>Differently Abled</option><option>Girl Student</option>
+    </select>
+    <select class="live-select" id="sch_income">
+      <option value="">Family income</option>
+      <option>Below ₹1L/year</option><option>₹1L–2.5L/year</option>
+      <option>₹2.5L–6L/year</option><option>₹6L–8L/year</option><option>Above ₹8L/year</option>
+    </select>
+    <button class="live-btn" onclick="calcScholarships()">💰 Find Scholarships</button>
+    <div class="live-result" id="sch_result"></div>
+  </div>`);
+  window._schData = [
+    {name:'NSP Central Sector Scheme',amt:'₹10,000–20,000/yr',elig:'12th passed, income below ₹8L, top 20 percentile in board',apply:'scholarships.gov.in',cats:['General','OBC','SC/ST','EWS']},
+    {name:'NSP Post Matric Scholarship',amt:'Full tuition + maintenance',elig:'SC/ST/OBC students, income below ₹2.5L',apply:'scholarships.gov.in',cats:['SC/ST','OBC']},
+    {name:'Pragati Scholarship (AICTE)',amt:'₹50,000/yr',elig:'Girl students in technical education, income below ₹8L',apply:'aicte-india.org',cats:['Girl Student','General','OBC','SC/ST','EWS']},
+    {name:'Saksham Scholarship (AICTE)',amt:'₹50,000/yr',elig:'Differently abled students in technical courses',apply:'aicte-india.org',cats:['Differently Abled']},
+    {name:'INSPIRE Scholarship (DST)',amt:'₹80,000/yr',elig:'Science students, top 1% in boards, pursuing B.Sc / M.Sc',apply:'online-inspire.gov.in',cats:['General','OBC','SC/ST','EWS']},
+    {name:'HDFC Badhte Kadam',amt:'Up to ₹75,000/yr',elig:'Meritorious students, income below ₹6L',apply:'hdfcbank.com/scholarships',cats:['General','OBC','SC/ST','EWS']},
+    {name:'Tata Capital Pankh Scholarship',amt:'Up to ₹10,000/yr',elig:'Professional/technical course, income below ₹4L',apply:'buddy4study.com',cats:['General','OBC','SC/ST','EWS']},
+    {name:'Sitaram Jindal Foundation',amt:'₹500–2,000/month',elig:'Merit + need, various streams',apply:'sitaramjindalfoundation.org',cats:['General','OBC','SC/ST','EWS']},
+    {name:'Reliance Foundation UG Scholarship',amt:'₹2L total',elig:'UG students, merit + need based',apply:'reliancefoundation.org',cats:['General','OBC','SC/ST','EWS']},
+    {name:'PM Scholarship for RPF/RPSF',amt:'₹2,500–3,000/month',elig:'Wards of RPF/RPSF personnel',apply:'desw.gov.in',cats:['General','OBC','SC/ST','EWS']},
+  ];
+}
+
+function calcScholarships() {
+  const cat = document.getElementById('sch_cat').value;
+  if (!cat) { alert('Please fill all fields'); return; }
+  const filtered = (window._schData||[]).filter(s => !cat || s.cats.includes(cat)).slice(0,6);
+  const res = document.getElementById('sch_result');
+  res.innerHTML = `<h5>💰 Matched Scholarships (${filtered.length})</h5>` +
+    filtered.map(s => `<div style="background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:12px 14px;margin-bottom:10px;">
+      <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:0.86rem;margin-bottom:4px;">${s.name}</div>
+      <div style="font-size:0.78rem;color:var(--accent3);margin-bottom:4px;">💰 ${s.amt}</div>
+      <div style="font-size:0.72rem;color:var(--text-muted);">✓ ${s.elig}</div>
+      <div style="font-size:0.68rem;color:var(--accent);margin-top:4px;">Apply: ${s.apply}</div>
+    </div>`).join('') +
+    `<p style="font-size:0.72rem;color:var(--text-muted);margin-top:8px;">Verify directly on official portals. Deadlines vary yearly.</p>`;
+  res.classList.add('show');
+}
+
+function showCultureScore() {
+  const colleges = ['IIT Bombay','IIT Delhi','IIT Madras','BITS Pilani','NIT Trichy','VIT Vellore','AIIMS Delhi','IIM Ahmedabad','SRCC Delhi','NLSIU Bangalore','NID Ahmedabad'];
+  const prefs = [['Research depth','res'],['Startup culture','startup'],['Placements / CTC','place'],['Student life & fests','life'],['Faculty quality','faculty'],['Campus infrastructure','infra'],['Global exposure','global'],['Work-life balance','wlb']];
+  setArea(`<div class="module-live">
+    <h4>🏛️ Campus Culture Fit Scorer</h4>
+    <select class="live-select" id="cc_college">
+      <option value="">Choose a college</option>
+      ${colleges.map(c => `<option>${c}</option>`).join('')}
+    </select>
+    <p style="font-size:0.8rem;margin:12px 0 8px;color:var(--text-muted);">What matters most? (select all that apply)</p>
+    <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px;">
+      ${prefs.map(([l,k]) => `<button onclick="this.classList.toggle('selected');this.style.background=this.classList.contains('selected')?'var(--accent)':'var(--surface2)';" data-pref="${k}" style="padding:7px 13px;border-radius:100px;border:1px solid var(--border);background:var(--surface2);color:var(--text);font-size:0.78rem;">${l}</button>`).join('')}
+    </div>
+    <button class="live-btn" onclick="calcCultureScore()">🏛️ Score This College</button>
+    <div class="live-result" id="cult_result"></div>
+  </div>`);
+  window._cultureData = {
+    'IIT Bombay':{res:95,startup:90,place:95,life:85,faculty:95,infra:90,global:88,wlb:60},
+    'IIT Delhi':{res:93,startup:85,place:94,life:80,faculty:93,infra:88,global:90,wlb:58},
+    'IIT Madras':{res:96,startup:82,place:92,life:82,faculty:96,infra:91,global:86,wlb:65},
+    'BITS Pilani':{res:80,startup:95,place:90,life:92,faculty:85,infra:88,global:82,wlb:80},
+    'NIT Trichy':{res:78,startup:70,place:82,life:80,faculty:82,infra:80,global:72,wlb:78},
+    'VIT Vellore':{res:65,startup:68,place:72,life:88,faculty:70,infra:90,global:75,wlb:85},
+    'AIIMS Delhi':{res:98,startup:50,place:90,life:65,faculty:98,infra:88,global:80,wlb:50},
+    'IIM Ahmedabad':{res:85,startup:88,place:99,life:78,faculty:95,infra:92,global:95,wlb:55},
+    'SRCC Delhi':{res:75,startup:72,place:80,life:85,faculty:80,infra:72,global:78,wlb:82},
+    'NLSIU Bangalore':{res:88,startup:65,place:88,life:80,faculty:90,infra:82,global:85,wlb:72},
+    'NID Ahmedabad':{res:80,startup:78,place:85,life:88,faculty:88,infra:85,global:82,wlb:82},
+  };
+}
+
+function calcCultureScore() {
+  const col = document.getElementById('cc_college').value;
+  if (!col) { alert('Please select a college'); return; }
+  const d = (window._cultureData||{})[col] || {};
+  const selPrefs = [...document.querySelectorAll('[data-pref].selected')].map(b => b.dataset.pref);
+  const keys = selPrefs.length ? selPrefs : Object.keys(d);
+  const avg = keys.length ? Math.round(keys.reduce((s,k) => s+(d[k]||70),0)/keys.length) : 75;
+  const star = avg>=85 ? '⭐⭐⭐⭐⭐ Excellent fit' : avg>=75 ? '⭐⭐⭐⭐ Strong fit' : avg>=65 ? '⭐⭐⭐ Good fit' : '⭐⭐ Consider carefully';
+  const labels = {res:'Research',startup:'Startup Culture',place:'Placements',life:'Student Life',faculty:'Faculty',infra:'Infrastructure',global:'Global Exposure',wlb:'Work-Life Balance'};
+  const res = document.getElementById('cult_result');
+  res.innerHTML = `<h5>🏛️ ${col} — Culture Fit</h5>
+    <div style="display:flex;align-items:center;gap:16px;margin-bottom:14px;">
+      <div style="font-family:'Syne',sans-serif;font-size:2.5rem;font-weight:800;color:var(--accent3);">${avg}</div>
+      <div><div style="font-size:0.75rem;color:var(--text-muted);">Overall Fit Score</div><div style="font-size:0.8rem;">${star}</div></div>
+    </div>` +
+    keys.map(k => `<div style="margin-bottom:8px;">
+      <div style="display:flex;justify-content:space-between;font-size:0.75rem;margin-bottom:3px;">
+        <span>${labels[k]||k}</span><span style="color:var(--accent3);">${d[k]||70}/100</span>
+      </div>
+      <div style="height:7px;background:var(--surface2);border-radius:4px;overflow:hidden;">
+        <div style="height:100%;width:${d[k]||70}%;background:linear-gradient(90deg,var(--accent),var(--accent3));border-radius:4px;transition:width 0.8s;"></div>
+      </div>
+    </div>`).join('');
+  res.classList.add('show');
+}
+
+// ── XAI MODULE TOOLS ──────────────────────────────────────────────
+function showSHAP() {
+  setArea(`<div class="module-live">
+    <h4>📊 SHAP Value Breakdown</h4>
+    <select class="live-select" id="xai_career">
+      <option value="">Select a career to analyse</option>
+      <option>Software Engineer</option><option>Data Scientist</option>
+      <option>Doctor (MBBS)</option><option>IAS Officer</option>
+      <option>Chartered Accountant</option><option>UX Designer</option>
+      <option>Architect</option><option>Lawyer</option>
+    </select>
+    <button class="live-btn" onclick="runXAI()">🔬 Show SHAP Reasoning</button>
+    <div class="live-result" id="xai_result"></div>
+  </div>`);
+}
+
+function showDecisionTree() {
+  setArea(`<div class="module-live"><h4>🌲 Visual Decision Tree</h4><p style="font-size:0.82rem;color:var(--text-muted);margin-bottom:14px;">Navigate the career decision tree:</p><div id="tree_q"></div><div class="live-result" id="tree_result"></div></div>`);
+  window._treeData = {q:'Do you enjoy working with people, ideas, or systems?', opts:[
+    {l:'👥 People', next:{q:'Do you want to help/heal or lead/persuade?', opts:[
+      {l:'Help / Heal', end:'Counselor, Doctor, Teacher, Social Worker'},
+      {l:'Lead / Persuade', end:'Manager, Lawyer, Politician, Entrepreneur'},
+    ]}},
+    {l:'💡 Ideas', next:{q:'Are you drawn more to research or creative expression?', opts:[
+      {l:'Research', end:'Scientist, Researcher, Data Scientist, Economist'},
+      {l:'Creative Expression', end:'Writer, Designer, Filmmaker, Architect'},
+    ]}},
+    {l:'⚙️ Systems', next:{q:'Do you prefer building systems or managing them?', opts:[
+      {l:'Building', end:'Software Engineer, DevOps, Product Manager, Engineer'},
+      {l:'Managing / Auditing', end:'CA, Banker, Operations Head, Civil Servant'},
+    ]}},
+  ]};
+  renderTreeNode(window._treeData);
+}
+
+// Simpler approach — store nodes by index
+function renderTreeNode(node) {
+  if (!node) return;
+  if (node.end) {
+    document.getElementById('tree_q').style.display = 'none';
+    const res = document.getElementById('tree_result');
+    res.innerHTML = `<h5>🎯 Career Recommendation</h5>
+      <p>Based on your path:</p><br>
+      <strong style="color:var(--accent3);font-size:1rem;">${node.end}</strong>
+      <p style="margin-top:12px;font-size:0.75rem;color:var(--accent);">✦ Try again to explore another path.</p>`;
+    res.classList.add('show');
+    return;
+  }
+  window._curTreeNode = node;
+  const q = document.getElementById('tree_q');
+  if (q) {
+    q.style.display = '';
+    q.innerHTML = `<div style="font-family:'Syne',sans-serif;font-weight:700;margin-bottom:12px;font-size:0.9rem;">${node.q}</div>` +
+      node.opts.map((o,i) =>
+        `<button onclick="renderTreeNode(window._curTreeNode.opts[${i}].next || {end:window._curTreeNode.opts[${i}].end})" style="display:block;width:100%;text-align:left;padding:10px 14px;margin-bottom:8px;background:var(--surface2);border:1px solid var(--border);border-radius:10px;color:var(--text);font-size:0.85rem;">${o.l}</button>`
+      ).join('');
+  }
+}
+
+function showConfidence() {
+  setArea(`<div class="module-live">
+    <h4>🎯 Confidence Score Calculator</h4>
+    <select class="live-select" id="conf_career">
+      <option value="">Target career</option>
+      <option>Software Engineer</option><option>Data Scientist</option>
+      <option>Doctor</option><option>IAS Officer</option><option>CA</option><option>UX Designer</option>
+    </select>
+    <p style="font-size:0.8rem;color:var(--text-muted);margin:12px 0 8px;">Rate yourself on each factor (drag slider):</p>
+    ${[['Academic performance in relevant subjects','conf_acad'],['Genuine interest in this field','conf_int'],['Relevant skills / projects done','conf_skill'],['Clarity about this career path','conf_clear']].map(([label,id]) => `
+    <div style="margin-bottom:12px;background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:10px 14px;">
+      <div style="font-size:0.8rem;margin-bottom:6px;">${label}</div>
+      <div style="display:flex;align-items:center;gap:10px;">
+        <input type="range" id="${id}" min="1" max="10" value="5" oninput="document.getElementById('${id}_v').textContent=this.value" style="flex:1;accent-color:var(--accent);">
+        <span id="${id}_v" style="font-family:'Space Mono',monospace;font-size:0.8rem;color:var(--accent);width:16px;">5</span>
+      </div>
+    </div>`).join('')}
+    <button class="live-btn" onclick="calcConfidence()">🎯 Calculate My Confidence</button>
+    <div class="live-result" id="conf_result"></div>
+  </div>`);
+}
+
+function calcConfidence() {
+  const ids = ['conf_acad','conf_int','conf_skill','conf_clear'];
+  const vals = ids.map(id => parseInt(document.getElementById(id).value));
+  const career = document.getElementById('conf_career').value || 'your target';
+  const score = Math.round(vals.reduce((a,b)=>a+b,0)/40*100);
+  const col = score>=80 ? 'var(--accent3)' : score>=60 ? 'var(--accent)' : 'var(--accent2)';
+  const level = score>=80 ? 'High Confidence ✦' : score>=60 ? 'Moderate — keep building' : 'Early stage — explore more';
+  const advice = score>=80 ? 'Great alignment! Focus on execution.' : score>=60 ? 'Solid foundation. Close the skill and clarity gaps before committing fully.' : 'Explore more before committing. Try our Interest Finder and speak to an expert.';
+  const res = document.getElementById('conf_result');
+  res.innerHTML = `<h5>🎯 Confidence Score for ${career}</h5>
+    <div style="font-family:'Syne',sans-serif;font-size:2.8rem;font-weight:800;color:${col};margin-bottom:8px;">${score}%</div>
+    <div style="height:10px;background:var(--surface2);border-radius:5px;overflow:hidden;margin-bottom:10px;">
+      <div style="height:100%;width:${score}%;background:linear-gradient(90deg,var(--accent),var(--accent3));border-radius:5px;transition:width 1s;"></div>
+    </div>
+    <strong>${level}</strong>
+    <p style="margin-top:8px;font-size:0.82rem;">${advice}</p>`;
+  res.classList.add('show');
+}
+
+function showFairnessAudit() {
+  setArea(`<div class="module-live">
+    <h4>⚖️ AI Fairness Audit</h4>
+    <p style="font-size:0.82rem;color:var(--text-muted);margin-bottom:14px;">Cluster's AI self-reports its bias check across key dimensions:</p>
+    <button class="live-btn" onclick="calcFairness()">⚖️ Run Fairness Audit</button>
+    <div class="live-result" id="audit_result"></div>
+  </div>`);
+}
+
+function calcFairness() {
+  const checks = [
+    {dim:'Gender Bias',status:'PASS',note:'Recommendations identical across M/F/NB profiles with same academic data.'},
+    {dim:'Socioeconomic Bias',status:'PASS',note:'Income data used only for scholarship matching — never for career ranking.'},
+    {dim:'Geographic Bias',status:'PASS',note:'Metro vs tier-2/3 city normalisation applied to all scores.'},
+    {dim:'Caste / Category Bias',status:'PASS',note:'Category used only for reservation-aware college matching, not career scoring.'},
+    {dim:'Recency Bias',status:'REVIEW',note:'Market data refreshed quarterly. Emerging fields may be slightly underweighted.'},
+    {dim:'Confirmation Bias',status:'PASS',note:'AI shows top 5 careers even if they differ from the stated preference.'},
+  ];
+  const res = document.getElementById('audit_result');
+  res.innerHTML = `<h5>⚖️ Fairness Audit Report</h5>` +
+    checks.map(c => {
+      const isPass = c.status === 'PASS';
+      const bg = isPass ? 'rgba(0,212,170,0.1)' : 'rgba(255,167,38,0.12)';
+      const col = isPass ? 'var(--accent3)' : '#ffa726';
+      return `<div style="display:flex;align-items:flex-start;gap:12px;margin-bottom:10px;background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:10px 14px;">
+        <div style="flex-shrink:0;padding:3px 8px;border-radius:6px;background:${bg};color:${col};font-family:'Space Mono',monospace;font-size:0.68rem;font-weight:700;">${c.status}</div>
+        <div>
+          <div style="font-size:0.82rem;font-weight:600;margin-bottom:2px;">${c.dim}</div>
+          <div style="font-size:0.75rem;color:var(--text-muted);">${c.note}</div>
+        </div>
+      </div>`;
+    }).join('') +
+    `<p style="font-size:0.75rem;color:var(--accent);margin-top:8px;">✦ Cluster undergoes quarterly bias audits disclosed in our transparency report.</p>`;
+  res.classList.add('show');
+}
+
+// ── EXPERT MODULE TOOLS ───────────────────────────────────────────
+function showBookSession() {
+  setArea(`<div class="module-live">
+    <h4>🎥 Book a 1:1 Expert Session</h4>
+    <input class="live-input" id="exp_name" placeholder="Your name">
+    <select class="live-select" id="exp_topic">
+      <option value="">What do you need help with?</option>
+      <option>Career path confusion</option><option>College selection strategy</option>
+      <option>Exam prep (JEE/NEET/UPSC)</option><option>Career switch / abroad plans</option>
+      <option>Mental health and career anxiety</option><option>Entrepreneurship guidance</option>
+    </select>
+    <select class="live-select" id="exp_expert">
+      <option value="">Choose expert type</option>
+      <option>Educational Psychologist</option><option>Career Strategist</option>
+      <option>College Admissions Expert</option><option>Clinical Psychologist</option>
+      <option>Entrepreneurship Mentor</option>
+    </select>
+    <button class="live-btn" onclick="runExpertBooking()">📅 Check Availability</button>
+    <div class="live-result" id="exp_result"></div>
+  </div>`);
+}
+
+function showReportReview() {
+  setArea(`<div class="module-live">
+    <h4>✅ AI Report Human Review</h4>
+    <p style="font-size:0.82rem;color:var(--text-muted);margin-bottom:12px;">Paste your Cluster AI career recommendation and a counsellor will add human context:</p>
+    <textarea class="live-input" id="review_text" style="min-height:90px;resize:vertical;" placeholder="e.g. Cluster recommended Software Engineering for me. I am from PCM background, interested in coding..."></textarea>
+    <select class="live-select" id="review_expert">
+      <option value="">Assign to expert</option>
+      <option>Dr. Anita Sharma — Educational Psychologist</option>
+      <option>Vikram Nair — Career Strategist</option>
+      <option>Rajesh Patel — College Admissions Expert</option>
+    </select>
+    <button class="live-btn" onclick="calcReportReview()">✅ Submit for Expert Review</button>
+    <div class="live-result" id="rev_result"></div>
+  </div>`);
+}
+
+function calcReportReview() {
+  const txt = document.getElementById('review_text').value.trim();
+  const exp = document.getElementById('review_expert').value;
+  if (!txt || !exp) { alert('Please fill both fields'); return; }
+  const res = document.getElementById('rev_result');
+  res.innerHTML = `<h5>✅ Review Request Submitted</h5>
+    <div style="background:rgba(0,212,170,0.08);border:1px solid rgba(0,212,170,0.2);border-radius:12px;padding:14px;margin-bottom:12px;">
+      <div style="color:var(--accent3);font-weight:600;margin-bottom:6px;">Request confirmed ✦</div>
+      <p style="font-size:0.82rem;"><strong>Assigned to:</strong> ${exp}<br><strong>Expected response:</strong> Within 24 hours<br><strong>Delivery:</strong> Email + in-app notification</p>
+    </div>
+    <p style="font-size:0.78rem;color:var(--text-muted);">The expert will review your AI recommendations, add context, flag concerns, and suggest next steps. First review is free.</p>`;
+  res.classList.add('show');
+}
+
+function showProgressTracker() {
+  setArea(`<div class="module-live">
+    <h4>📋 Progress Tracker</h4>
+    <input class="live-input" id="prog_goal" placeholder="Your career goal (e.g. Get into IIT CSE)">
+    <select class="live-select" id="prog_timeline">
+      <option value="">Target timeline</option>
+      <option>3 months</option><option>6 months</option><option>1 year</option><option>2 years</option>
+    </select>
+    <button class="live-btn" onclick="calcProgress()">📋 Create My Tracker</button>
+    <div class="live-result" id="prog_result"></div>
+  </div>`);
+  window._milestones = {
+    '3 months':['Week 1–2: Baseline assessment and study plan setup','Month 1: Complete syllabus coverage (70%)','Month 2: Full mock test series begins','Month 2–3: Weak area intensive focus','Final week: Last 5 years papers only'],
+    '6 months':['Month 1: Foundation and planning','Month 2–3: Core subject mastery','Month 3–4: Practice tests and gap analysis','Month 5: Revision and weak areas','Month 6: Mock exams and final prep'],
+    '1 year':['Q1: Assessment, planning, and foundation','Q2: Deep learning and skill building','Q3: Practice, internships, and projects','Q4: Final prep, applications, and execution'],
+    '2 years':['Year 1 H1: Explore and build foundation skills','Year 1 H2: Specialise and complete first internship','Year 2 H1: Build portfolio and projects','Year 2 H2: Job hunt, exam, or application season'],
+  };
+}
+
+function calcProgress() {
+  const goal = document.getElementById('prog_goal').value || 'your goal';
+  const time = document.getElementById('prog_timeline').value;
+  if (!time) { alert('Please select a timeline'); return; }
+  const steps = (window._milestones||{})[time] || [];
+  const res = document.getElementById('prog_result');
+  res.innerHTML = `<h5>📋 Tracker: ${goal}</h5>
+    <p style="font-size:0.75rem;color:var(--text-muted);margin-bottom:12px;">Timeline: ${time}</p>` +
+    steps.map((s,i) => `<div style="display:flex;gap:10px;align-items:flex-start;margin-bottom:10px;">
+      <div style="width:24px;height:24px;border-radius:50%;border:2px solid var(--accent);display:flex;align-items:center;justify-content:center;font-size:0.65rem;font-family:'Space Mono',monospace;flex-shrink:0;color:var(--accent);">${i+1}</div>
+      <div style="padding-top:3px;font-size:0.82rem;">${s}</div>
+    </div>`).join('') +
+    `<div style="margin-top:12px;background:rgba(108,99,255,0.08);border:1px solid rgba(108,99,255,0.2);border-radius:10px;padding:12px;">
+      <div style="font-size:0.78rem;color:var(--accent);font-weight:600;margin-bottom:4px;">✦ Counsellor Access</div>
+      <div style="font-size:0.75rem;color:var(--text-muted);">Dr. Anita Sharma will review your progress weekly and send personalised nudges if you fall behind.</div>
+    </div>`;
+  res.classList.add('show');
+}
+
+function showPeerMentor() {
+  const paths = ['IIT via JEE (CSE)','AIIMS / Top Medical','IIM via CAT (MBA)','UPSC / IAS','NLU via CLAT (Law)','Study abroad (MS/MBA)','Startup / Entrepreneurship','Creative / Design career'];
+  setArea(`<div class="module-live">
+    <h4>🤝 Peer Mentor Matching</h4>
+    <p style="font-size:0.82rem;color:var(--text-muted);margin-bottom:12px;">Connect with alumni who walked the exact path you are considering:</p>
+    <select class="live-select" id="peer_path">
+      <option value="">Your target path</option>
+      ${paths.map(p => `<option>${p}</option>`).join('')}
+    </select>
+    <button class="live-btn" onclick="calcPeerMentor()">🤝 Find My Mentor</button>
+    <div class="live-result" id="peer_result"></div>
+  </div>`);
+  window._mentors = {
+    'IIT via JEE (CSE)':[{name:'Ananya Krishnan',tag:'IIT Bombay CSE 2022',note:'Cracked JEE in first attempt with 99.6 percentile. Happy to share study strategy and mental health tips.'},{name:'Rahul Verma',tag:'IIT Delhi CSE 2021',note:'Dropped a year, cracked JEE Advanced. Will tell you what NOT to do.'}],
+    'AIIMS / Top Medical':[{name:'Dr. Priya Nair',tag:'AIIMS MBBS 2023',note:'NEET 715/720. Full NCERT strategy and how to handle failure. Very open to chat.'},{name:'Karthik M.',tag:'JIPMER 2022',note:'Second attempt NEET. Knows exactly how to bounce back and study smarter.'}],
+    'IIM via CAT (MBA)':[{name:'Sneha Joshi',tag:'IIM Calcutta 2024',note:'CAT 99.7 percentile, 2 years work experience. Resume, SOP, and PI prep advice.'},{name:'Arjun Mehta',tag:'IIM Lucknow 2023',note:'From engineering to MBA — will help you frame the career switch story.'}],
+    'UPSC / IAS':[{name:'IPS Divya R.',tag:'UPSC 2022 Rank 48',note:'Will share the exact reading list and schedule that got me to Rank 48 in second attempt.'},{name:'Rohan Gupta',tag:'UPSC 2023 Rank 112',note:'Engineer turned IAS. Best source for optional subject selection advice.'}],
+    'NLU via CLAT (Law)':[{name:'Aditya Sharma',tag:'NLSIU Bangalore 2022',note:'CLAT Rank 34. Share resources, mock test strategy, and what campus life is really like.'},{name:'Nandini Rao',tag:'NALSAR 2023',note:'First-gen law student. Will guide you through the process from scratch.'}],
+    'Study abroad (MS/MBA)':[{name:'Varsha Iyer',tag:'MIT EECS 2023',note:'GRE 335, TOEFL 119. SOPs, LOR strategy, visa interview tips — all covered.'},{name:'Akash Bansal',tag:'Wharton MBA 2024',note:'GMAT 760. Indian applicant strategy, scholarship negotiation, and interview prep.'}],
+    'Startup / Entrepreneurship':[{name:'Tanvi Ahuja',tag:'Founder, EdTech startup',note:'Dropped out of IIT to build. Raised seed round. Honest about the realities.'},{name:'Rohan Das',tag:'2x Founder, Y Combinator 2023',note:'Will help you validate your idea and find your first 10 customers.'}],
+    'Creative / Design career':[{name:'Meera Kapoor',tag:'NID Grad, Senior Designer at Ola',note:'NID DAT strategy, portfolio building, and how to survive in competitive design.'},{name:'Vikram Nair',tag:'FTII Grad, Filmmaker',note:'FTII entrance prep, film festival circuit, and honest advice about creative careers.'}],
+  };
+}
+
+function calcPeerMentor() {
+  const path = document.getElementById('peer_path').value;
+  if (!path) { alert('Please select a path'); return; }
+  const list = (window._mentors||{})[path] || [];
+  const res = document.getElementById('peer_result');
+  res.innerHTML = `<h5>🤝 Matched Mentors for: ${path}</h5>` +
+    list.map(m => `<div style="background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:14px;margin-bottom:10px;">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
+        <div style="width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent2));display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-weight:700;font-size:0.9rem;">${m.name[0]}</div>
+        <div>
+          <div style="font-weight:700;font-size:0.86rem;">${m.name}</div>
+          <div style="font-size:0.7rem;color:var(--accent3);">${m.tag}</div>
+        </div>
+      </div>
+      <p style="font-size:0.78rem;color:var(--text-muted);margin-bottom:8px;">${m.note}</p>
+      <button id="btn_${m.name.replace(/ /g,'_')}" onclick="this.textContent='✓ Request Sent!';this.style.background='rgba(0,212,170,0.1)';this.style.borderColor='var(--accent3)';this.style.color='var(--accent3)';" style="padding:6px 14px;border-radius:100px;border:1px solid var(--border);background:var(--surface);color:var(--text);font-size:0.75rem;">Connect with ${m.name.split(' ')[0]}</button>
+    </div>`).join('');
+  res.classList.add('show');
+}
 // --- Career Counselor Logic ---
 // =====================
 // LOCAL KNOWLEDGE ENGINE — No API needed
@@ -3481,41 +4200,214 @@ function sendModalChat() {
 // --- College Advisor Logic ---
 function runCollegeAdvisor() {
   const course = document.getElementById('ca_course').value;
-  const score = document.getElementById('ca_score').value.trim();
+  const rawScore = document.getElementById('ca_score').value.trim();
   const pref = document.getElementById('ca_pref').value;
-  if (!course || !score) { alert('Please fill all fields.'); return; }
+  const result = document.getElementById('ca_result');
+  if (!course || !rawScore) { alert('Please fill all fields.'); return; }
 
-  const colleges = {
+  // Parse score input intelligently
+  const scoreStr = rawScore.toLowerCase();
+  let boardPct = null, jeeRank = null, neetScore = null, catPct = null, clatRank = null;
+  if (scoreStr.includes('jee') || scoreStr.includes('rank')) {
+    jeeRank = parseInt(rawScore.replace(/[^0-9]/g,'')) || 9999;
+  } else if (scoreStr.includes('neet') || (course === 'Medical / MBBS' && parseInt(rawScore) > 200)) {
+    neetScore = parseInt(rawScore.replace(/[^0-9]/g,''));
+  } else if (scoreStr.includes('cat') || scoreStr.includes('percentile')) {
+    catPct = parseFloat(rawScore.replace(/[^0-9.]/g,''));
+  } else if (scoreStr.includes('clat') || (course === 'Law' && parseInt(rawScore) < 200)) {
+    clatRank = parseInt(rawScore.replace(/[^0-9]/g,''));
+  } else {
+    boardPct = parseFloat(rawScore.replace(/[^0-9.]/g,''));
+  }
+
+  // Comprehensive college database
+  const allColleges = {
     'Computer Science / IT': [
-      {name:'IIT Bombay', sub:'CSE — JEE Advanced Top 500', score:'98% fit'},
-      {name:'BITS Pilani', sub:'CS — BITSAT 360+', score:'95% fit'},
-      {name:'NIT Trichy', sub:'CSE — JEE Mains 99 percentile', score:'91% fit'},
-      {name:'VIT Vellore', sub:'CSE — VITEEE Top 1000', score:'85% fit'},
+      // Tier 1 — JEE Advanced / very high boards
+      {name:'IIT Bombay',loc:'West India',sub:'CSE B.Tech',req:'JEE Advanced Rank < 100',tier:1,cutoff:100,type:'jee',fee:'₹2.3L/yr',placements:'₹45L avg CTC'},
+      {name:'IIT Delhi',loc:'North India',sub:'CSE B.Tech',req:'JEE Advanced Rank < 150',tier:1,cutoff:150,type:'jee',fee:'₹2.3L/yr',placements:'₹42L avg CTC'},
+      {name:'IIT Madras',loc:'South India',sub:'CSE B.Tech',req:'JEE Advanced Rank < 200',tier:1,cutoff:200,type:'jee',fee:'₹2.3L/yr',placements:'₹38L avg CTC'},
+      {name:'IIT Kanpur',loc:'North India',sub:'CSE B.Tech',req:'JEE Advanced Rank < 350',tier:1,cutoff:350,type:'jee',fee:'₹2.3L/yr',placements:'₹36L avg CTC'},
+      {name:'IIT Kharagpur',loc:'East India',sub:'CSE B.Tech',req:'JEE Advanced Rank < 500',tier:1,cutoff:500,type:'jee',fee:'₹2.3L/yr',placements:'₹32L avg CTC'},
+      // Tier 2 — JEE Main / BITSAT
+      {name:'BITS Pilani',loc:'North India',sub:'CS B.E.',req:'BITSAT 360+ or JEE Main 99.5 pct',tier:2,cutoff:2000,type:'jee',fee:'₹5.5L/yr',placements:'₹28L avg CTC'},
+      {name:'NIT Trichy',loc:'South India',sub:'CSE B.Tech',req:'JEE Main Rank < 3500',tier:2,cutoff:3500,type:'jee',fee:'₹1.5L/yr',placements:'₹18L avg CTC'},
+      {name:'NIT Warangal',loc:'South India',sub:'CSE B.Tech',req:'JEE Main Rank < 5000',tier:2,cutoff:5000,type:'jee',fee:'₹1.5L/yr',placements:'₹16L avg CTC'},
+      {name:'IIIT Hyderabad',loc:'South India',sub:'CSE B.Tech',req:'JEE Main Rank < 7000',tier:2,cutoff:7000,type:'jee',fee:'₹3.5L/yr',placements:'₹22L avg CTC'},
+      {name:'NIT Surathkal',loc:'South India',sub:'CSE B.Tech',req:'JEE Main Rank < 6000',tier:2,cutoff:6000,type:'jee',fee:'₹1.5L/yr',placements:'₹15L avg CTC'},
+      {name:'NIT Calicut',loc:'South India',sub:'CSE B.Tech',req:'JEE Main Rank < 8000',tier:2,cutoff:8000,type:'jee',fee:'₹1.2L/yr',placements:'₹14L avg CTC'},
+      {name:'DTU Delhi',loc:'North India',sub:'CSE B.Tech',req:'JEE Main Rank < 10000 (Delhi state)',tier:2,cutoff:10000,type:'jee',fee:'₹1.7L/yr',placements:'₹16L avg CTC'},
+      {name:'NSUT Delhi',loc:'North India',sub:'CSE B.Tech',req:'JEE Main Rank < 12000 (Delhi state)',tier:2,cutoff:12000,type:'jee',fee:'₹1.6L/yr',placements:'₹14L avg CTC'},
+      // Tier 3 — Higher JEE rank / Boards
+      {name:'VIT Vellore',loc:'South India',sub:'CSE B.Tech',req:'VITEEE or 85%+ boards',tier:3,cutoff:85,type:'board',fee:'₹3.8L/yr',placements:'₹8L avg CTC'},
+      {name:'SRM Chennai',loc:'South India',sub:'CSE B.Tech',req:'SRMJEEE or 80%+ boards',tier:3,cutoff:80,type:'board',fee:'₹3.5L/yr',placements:'₹7L avg CTC'},
+      {name:'Manipal University',loc:'South India',sub:'CSE B.Tech',req:'MET or 80%+ boards',tier:3,cutoff:80,type:'board',fee:'₹4.2L/yr',placements:'₹8L avg CTC'},
+      {name:'Thapar University',loc:'North India',sub:'CSE B.Tech',req:'JEE Main 85 pct or 85%+ boards',tier:3,cutoff:85,type:'board',fee:'₹3.5L/yr',placements:'₹9L avg CTC'},
+      {name:'UPES Dehradun',loc:'North India',sub:'CSE (AI/ML) B.Tech',req:'75%+ boards',tier:3,cutoff:75,type:'board',fee:'₹2.8L/yr',placements:'₹7L avg CTC'},
+      {name:'Amity University',loc:'North India',sub:'CSE B.Tech',req:'70%+ boards',tier:3,cutoff:70,type:'board',fee:'₹2.5L/yr',placements:'₹5L avg CTC'},
     ],
+
+    'Mechanical Engineering': [
+      {name:'IIT Bombay',loc:'West India',sub:'Mechanical B.Tech',req:'JEE Advanced Rank < 1200',tier:1,cutoff:1200,type:'jee',fee:'₹2.3L/yr',placements:'₹22L avg CTC'},
+      {name:'IIT Delhi',loc:'North India',sub:'Mechanical B.Tech',req:'JEE Advanced Rank < 1500',tier:1,cutoff:1500,type:'jee',fee:'₹2.3L/yr',placements:'₹20L avg CTC'},
+      {name:'IIT Madras',loc:'South India',sub:'Mechanical B.Tech',req:'JEE Advanced Rank < 1800',tier:1,cutoff:1800,type:'jee',fee:'₹2.3L/yr',placements:'₹19L avg CTC'},
+      {name:'IIT Kharagpur',loc:'East India',sub:'Mechanical B.Tech',req:'JEE Advanced Rank < 2500',tier:1,cutoff:2500,type:'jee',fee:'₹2.3L/yr',placements:'₹17L avg CTC'},
+      {name:'NIT Trichy',loc:'South India',sub:'Mechanical B.Tech',req:'JEE Main Rank < 12000',tier:2,cutoff:12000,type:'jee',fee:'₹1.5L/yr',placements:'₹10L avg CTC'},
+      {name:'NIT Warangal',loc:'South India',sub:'Mechanical B.Tech',req:'JEE Main Rank < 15000',tier:2,cutoff:15000,type:'jee',fee:'₹1.5L/yr',placements:'₹9L avg CTC'},
+      {name:'BITS Pilani',loc:'North India',sub:'Mechanical B.E.',req:'BITSAT 330+',tier:2,cutoff:8000,type:'jee',fee:'₹5.5L/yr',placements:'₹14L avg CTC'},
+      {name:'VIT Vellore',loc:'South India',sub:'Mechanical B.Tech',req:'80%+ boards',tier:3,cutoff:80,type:'board',fee:'₹2.8L/yr',placements:'₹6L avg CTC'},
+      {name:'Manipal University',loc:'South India',sub:'Mechanical B.Tech',req:'78%+ boards',tier:3,cutoff:78,type:'board',fee:'₹3.8L/yr',placements:'₹5.5L avg CTC'},
+      {name:'Thapar University',loc:'North India',sub:'Mechanical B.Tech',req:'80%+ boards',tier:3,cutoff:80,type:'board',fee:'₹3.2L/yr',placements:'₹7L avg CTC'},
+    ],
+
     'Medical / MBBS': [
-      {name:'AIIMS New Delhi', sub:'MBBS — NEET 720/720', score:'99% fit'},
-      {name:'JIPMER Puducherry', sub:'MBBS — NEET 660+', score:'94% fit'},
-      {name:'Maulana Azad Medical', sub:'MBBS — NEET 640+', score:'89% fit'},
-      {name:'Kasturba Medical College', sub:'MBBS — NEET 600+', score:'83% fit'},
+      {name:'AIIMS New Delhi',loc:'North India',sub:'MBBS',req:'NEET 690+ (General)',tier:1,cutoff:690,type:'neet',fee:'₹6,500/yr (Govt)',placements:'Residency + ₹15-25L after PG'},
+      {name:'JIPMER Puducherry',loc:'South India',sub:'MBBS',req:'NEET 660+',tier:1,cutoff:660,type:'neet',fee:'₹6,250/yr (Govt)',placements:'Residency + ₹12-20L after PG'},
+      {name:'AIIMS Jodhpur',loc:'North India',sub:'MBBS',req:'NEET 650+',tier:1,cutoff:650,type:'neet',fee:'₹6,500/yr',placements:'Residency'},
+      {name:'AIIMS Bhopal',loc:'North India',sub:'MBBS',req:'NEET 640+',tier:1,cutoff:640,type:'neet',fee:'₹6,500/yr',placements:'Residency'},
+      {name:'Maulana Azad Medical College',loc:'North India',sub:'MBBS',req:'NEET 620+ (Delhi domicile helps)',tier:2,cutoff:620,type:'neet',fee:'₹15,000/yr (Govt)',placements:'Residency'},
+      {name:'Grant Medical College Mumbai',loc:'West India',sub:'MBBS',req:'NEET 615+',tier:2,cutoff:615,type:'neet',fee:'₹20,000/yr',placements:'Residency'},
+      {name:'Seth GS Medical College',loc:'West India',sub:'MBBS',req:'NEET 610+',tier:2,cutoff:610,type:'neet',fee:'₹25,000/yr',placements:'Residency'},
+      {name:'Stanley Medical College',loc:'South India',sub:'MBBS',req:'NEET 600+ (TN domicile)',tier:2,cutoff:600,type:'neet',fee:'₹18,000/yr',placements:'Residency'},
+      {name:'Kasturba Medical College Manipal',loc:'South India',sub:'MBBS',req:'NEET 550+ (Private)',tier:3,cutoff:550,type:'neet',fee:'₹18L/yr',placements:'Residency'},
+      {name:'Amrita Medical College',loc:'South India',sub:'MBBS',req:'NEET 540+',tier:3,cutoff:540,type:'neet',fee:'₹15L/yr',placements:'Residency'},
+      {name:'JSS Medical College Mysore',loc:'South India',sub:'MBBS',req:'NEET 530+',tier:3,cutoff:530,type:'neet',fee:'₹12L/yr',placements:'Residency'},
+      {name:'Saveetha Medical College',loc:'South India',sub:'MBBS',req:'NEET 500+',tier:3,cutoff:500,type:'neet',fee:'₹10L/yr',placements:'Residency'},
     ],
+
     'Commerce / BBA / MBA': [
-      {name:'IIM Ahmedabad', sub:'MBA — CAT 99.5 percentile', score:'98% fit'},
-      {name:'SRCC Delhi', sub:'BCom (H) — 97%+ boards', score:'93% fit'},
-      {name:'NMIMS Mumbai', sub:'BBA — NPAT 90+ percentile', score:'88% fit'},
-      {name:'Christ University', sub:'BBA — 85%+ boards', score:'82% fit'},
+      {name:'IIM Ahmedabad',loc:'West India',sub:'MBA (PGP)',req:'CAT 99.5 percentile + strong profile',tier:1,cutoff:99.5,type:'cat',fee:'₹13.5L total',placements:'₹35L avg CTC'},
+      {name:'IIM Bangalore',loc:'South India',sub:'MBA (PGP)',req:'CAT 99+ percentile',tier:1,cutoff:99,type:'cat',fee:'₹24L total',placements:'₹33L avg CTC'},
+      {name:'IIM Calcutta',loc:'East India',sub:'MBA (PGP)',req:'CAT 99+ percentile',tier:1,cutoff:99,type:'cat',fee:'₹27L total',placements:'₹32L avg CTC'},
+      {name:'IIM Lucknow',loc:'North India',sub:'MBA (PGP)',req:'CAT 97+ percentile',tier:1,cutoff:97,type:'cat',fee:'₹19L total',placements:'₹28L avg CTC'},
+      {name:'XLRI Jamshedpur',loc:'East India',sub:'MBA (HRM/BM)',req:'XAT 95+ percentile',tier:1,cutoff:95,type:'cat',fee:'₹27L total',placements:'₹27L avg CTC'},
+      {name:'SRCC Delhi University',loc:'North India',sub:'BCom (Honours)',req:'95%+ boards (Commerce)',tier:1,cutoff:95,type:'board',fee:'₹30,000/yr',placements:'CA/MBA pathways'},
+      {name:'LSR Delhi University',loc:'North India',sub:'BA Economics',req:'95%+ boards',tier:1,cutoff:95,type:'board',fee:'₹30,000/yr',placements:'Research/Civil Services'},
+      {name:'St. Xavier\'s College Mumbai',loc:'West India',sub:'BCom / BMS',req:'92%+ boards',tier:2,cutoff:92,type:'board',fee:'₹25,000/yr',placements:'Finance/MBA pathways'},
+      {name:'NMIMS Mumbai',loc:'West India',sub:'BBA / MBA',req:'NPAT 85+ pct or CAT 90+',tier:2,cutoff:90,type:'board',fee:'₹6.5L/yr',placements:'₹12L avg CTC (MBA)'},
+      {name:'Symbiosis (SIBM) Pune',loc:'West India',sub:'MBA',req:'SNAP 98+ percentile',tier:2,cutoff:92,type:'board',fee:'₹9L/yr',placements:'₹14L avg CTC'},
+      {name:'IIM Indore (IPM)',loc:'North India',sub:'BBA+MBA (5yr integrated)',req:'IPMAT — good Math + VA',tier:2,cutoff:88,type:'board',fee:'₹16L total',placements:'₹22L avg CTC'},
+      {name:'Christ University Bangalore',loc:'South India',sub:'BBA / BCom',req:'85%+ boards',tier:3,cutoff:85,type:'board',fee:'₹1.2L/yr',placements:'Good campus placements'},
+      {name:'Presidency College Kolkata',loc:'East India',sub:'BA Economics / BCom',req:'90%+ boards',tier:2,cutoff:90,type:'board',fee:'₹12,000/yr',placements:'Research/Civil Services'},
+    ],
+
+    'Design / Architecture': [
+      {name:'NID Ahmedabad',loc:'West India',sub:'B.Des (various)',req:'NID DAT Stage 1 & 2',tier:1,cutoff:92,type:'board',fee:'₹2.5L/yr',placements:'₹12-30L avg CTC'},
+      {name:'IIT Bombay (IDC)',loc:'West India',sub:'B.Des / M.Des',req:'UCEED / JEE Advanced',tier:1,cutoff:90,type:'board',fee:'₹2.3L/yr',placements:'₹18L avg CTC'},
+      {name:'IIT Delhi (Design)',loc:'North India',sub:'B.Des',req:'UCEED Top 500',tier:1,cutoff:90,type:'board',fee:'₹2.3L/yr',placements:'₹16L avg CTC'},
+      {name:'MIT Institute of Design Pune',loc:'West India',sub:'B.Des UG',req:'Portfolio + 75%+ boards',tier:2,cutoff:75,type:'board',fee:'₹3.5L/yr',placements:'₹8L avg CTC'},
+      {name:'Srishti Manipal Bangalore',loc:'South India',sub:'B.Des',req:'Portfolio + 70%+ boards',tier:2,cutoff:70,type:'board',fee:'₹3.8L/yr',placements:'₹7L avg CTC'},
+      {name:'NIFT Delhi',loc:'North India',sub:'B.Des (Fashion)',req:'NIFT Entrance Exam',tier:1,cutoff:88,type:'board',fee:'₹1.8L/yr',placements:'₹8L avg CTC'},
+      {name:'CEPT University Ahmedabad',loc:'West India',sub:'B.Arch',req:'JEE Paper 2 / NATA',tier:2,cutoff:80,type:'board',fee:'₹2.2L/yr',placements:'₹8L avg CTC'},
+      {name:'SPA Delhi (School of Planning)',loc:'North India',sub:'B.Arch',req:'JEE Paper 2 / NATA 80+',tier:1,cutoff:88,type:'board',fee:'₹85,000/yr',placements:'₹10L avg CTC'},
+      {name:'Pearl Academy',loc:'North India',sub:'B.Des (Fashion/Communication)',req:'70%+ boards + portfolio',tier:3,cutoff:70,type:'board',fee:'₹4L/yr',placements:'₹5L avg CTC'},
+    ],
+
+    'Law': [
+      {name:'NLSIU Bangalore',loc:'South India',sub:'BA LLB (Hons)',req:'CLAT Rank < 100',tier:1,cutoff:100,type:'clat',fee:'₹2.2L/yr',placements:'₹20-50L (top law firms)'},
+      {name:'NLU Delhi (NLU-D)',loc:'North India',sub:'BA LLB (Hons)',req:'AILET Rank < 100',tier:1,cutoff:100,type:'clat',fee:'₹1.8L/yr',placements:'₹18-45L'},
+      {name:'NALSAR Hyderabad',loc:'South India',sub:'BA LLB (Hons)',req:'CLAT Rank < 300',tier:1,cutoff:300,type:'clat',fee:'₹2L/yr',placements:'₹15-35L'},
+      {name:'NLU Jodhpur',loc:'North India',sub:'BA LLB (Hons)',req:'CLAT Rank < 700',tier:1,cutoff:700,type:'clat',fee:'₹1.9L/yr',placements:'₹12-25L'},
+      {name:'WBNUJS Kolkata',loc:'East India',sub:'BA LLB (Hons)',req:'CLAT Rank < 500',tier:1,cutoff:500,type:'clat',fee:'₹1.5L/yr',placements:'₹12-22L'},
+      {name:'GNLU Gandhinagar',loc:'West India',sub:'BA LLB (Hons)',req:'CLAT Rank < 1200',tier:2,cutoff:1200,type:'clat',fee:'₹1.6L/yr',placements:'₹10-18L'},
+      {name:'RGNLU Patiala',loc:'North India',sub:'BA LLB (Hons)',req:'CLAT Rank < 2000',tier:2,cutoff:2000,type:'clat',fee:'₹1.2L/yr',placements:'₹8-14L'},
+      {name:'Symbiosis Law School Pune',loc:'West India',sub:'BA LLB / BBA LLB',req:'SET Law exam + 75%+ boards',tier:2,cutoff:75,type:'board',fee:'₹3.8L/yr',placements:'₹10-18L'},
+      {name:'Christ University Law',loc:'South India',sub:'BBA LLB / BA LLB',req:'75%+ boards + interview',tier:3,cutoff:75,type:'board',fee:'₹1.5L/yr',placements:'₹8-14L'},
+      {name:'Amity Law School',loc:'North India',sub:'BA LLB',req:'70%+ boards',tier:3,cutoff:70,type:'board',fee:'₹2.5L/yr',placements:'₹6-10L'},
+    ],
+
+    'Arts / Humanities': [
+      {name:'St. Stephen\'s College Delhi',loc:'North India',sub:'BA (History/English/Philosophy)',req:'96%+ boards (Humanities)',tier:1,cutoff:96,type:'board',fee:'₹25,000/yr',placements:'Civil Services / Research'},
+      {name:'JNU New Delhi',loc:'North India',sub:'BA / MA (various)',req:'JNUEE Entrance + 85%+ boards',tier:1,cutoff:85,type:'board',fee:'₹20,000/yr',placements:'Research / Civil Services'},
+      {name:'Presidency College Kolkata',loc:'East India',sub:'BA (History / Political Science)',req:'90%+ boards',tier:1,cutoff:90,type:'board',fee:'₹15,000/yr',placements:'Academia / Civil Services'},
+      {name:'Miranda House DU',loc:'North India',sub:'BA Programme / Honours',req:'95%+ boards',tier:1,cutoff:95,type:'board',fee:'₹25,000/yr',placements:'Diverse'},
+      {name:'Loyola College Chennai',loc:'South India',sub:'BA (English / History / Economics)',req:'88%+ boards',tier:2,cutoff:88,type:'board',fee:'₹30,000/yr',placements:'Academia / Media'},
+      {name:'Fergusson College Pune',loc:'West India',sub:'BA (various)',req:'82%+ boards',tier:2,cutoff:82,type:'board',fee:'₹20,000/yr',placements:'Diverse'},
+      {name:'Christ University Bangalore',loc:'South India',sub:'BA / MA (Psychology / English)',req:'80%+ boards',tier:2,cutoff:80,type:'board',fee:'₹90,000/yr',placements:'Media / Counseling'},
+      {name:'TISS Mumbai',loc:'West India',sub:'BA Social Work / MA',req:'TISS-NET entrance exam',tier:1,cutoff:80,type:'board',fee:'₹60,000/yr',placements:'NGO / Policy ₹6-15L'},
+      {name:'Hyderabad University',loc:'South India',sub:'BA / MA',req:'UH Entrance + 80%+ boards',tier:2,cutoff:80,type:'board',fee:'₹30,000/yr',placements:'Research / Academia'},
     ],
   };
 
-  const list = colleges[course] || [
-    {name:'Top National University', sub:`${course} program — Based on your score`, score:'90% fit'},
-    {name:'Leading State University', sub:`${course} — Merit based admission`, score:'85% fit'},
-    {name:'Private Deemed University', sub:`${course} — Management quota available`, score:'78% fit'},
-  ];
+  // Score parsing & filtering logic
+  function scoreMatch(college, jeeR, neetS, catP, clatR, boardP) {
+    if (college.type === 'jee' && jeeR !== null) return jeeR <= college.cutoff;
+    if (college.type === 'neet' && neetS !== null) return neetS >= college.cutoff;
+    if (college.type === 'cat' && catP !== null) return catP >= college.cutoff;
+    if (college.type === 'clat' && clatR !== null) return clatR <= college.cutoff;
+    if (college.type === 'board' && boardP !== null) return boardP >= college.cutoff;
+    // If score type doesn't match, show all for that course
+    return true;
+  }
 
-  const result = document.getElementById('ca_result');
-  result.innerHTML = `<h5>🏛️ Top Colleges for ${course} — ${pref || 'All India'}</h5>` +
-    list.map(c=>`<div class="college-card"><div><div class="college-card-name">${c.name}</div><div class="college-card-sub">${c.sub}</div></div><div class="college-card-score">${c.score}</div></div>`).join('') +
-    `<p style="margin-top:12px;font-size:0.78rem;color:var(--text-muted)">Based on your input: <strong>${score}</strong>. Book a session with our College Advisor for a complete application strategy.</p>`;
+  function fitScore(college, jeeR, neetS, catP, clatR, boardP) {
+    if (college.type === 'jee' && jeeR !== null) {
+      const ratio = jeeR / college.cutoff;
+      return ratio <= 0.5 ? 99 : ratio <= 0.8 ? 94 : ratio <= 1.0 ? 87 : 72;
+    }
+    if (college.type === 'neet' && neetS !== null) {
+      const margin = neetS - college.cutoff;
+      return margin >= 40 ? 99 : margin >= 20 ? 93 : margin >= 5 ? 85 : 74;
+    }
+    if (college.type === 'cat' && catP !== null) {
+      const margin = catP - college.cutoff;
+      return margin >= 1.5 ? 98 : margin >= 0.5 ? 91 : margin >= 0 ? 83 : 68;
+    }
+    if (college.type === 'clat' && clatR !== null) {
+      const ratio = clatR / college.cutoff;
+      return ratio <= 0.5 ? 98 : ratio <= 0.8 ? 91 : ratio <= 1.0 ? 84 : 70;
+    }
+    if (college.type === 'board' && boardP !== null) {
+      const margin = boardP - college.cutoff;
+      return margin >= 8 ? 97 : margin >= 4 ? 91 : margin >= 0 ? 83 : 70;
+    }
+    return 80;
+  }
+
+  const pool = allColleges[course] || [];
+  let filtered = pool.filter(c => {
+    const locMatch = !pref || pref === 'Any / Open' || c.loc === pref;
+    const scoreOk = scoreMatch(c, jeeRank, neetScore, catPct, clatRank, boardPct);
+    return locMatch && scoreOk;
+  });
+
+  // If too few results after location filter, broaden
+  if (filtered.length < 3) {
+    filtered = pool.filter(c => scoreMatch(c, jeeRank, neetScore, catPct, clatRank, boardPct));
+  }
+  // If still too few, show all in that course
+  if (filtered.length < 3) filtered = pool;
+
+  // Sort by fit score desc, take top 6
+  filtered = filtered
+    .map(c => ({ ...c, fit: fitScore(c, jeeRank, neetScore, catPct, clatRank, boardPct) }))
+    .sort((a,b) => b.fit - a.fit)
+    .slice(0, 6);
+
+  const fitColor = f => f >= 90 ? 'var(--accent3)' : f >= 80 ? 'var(--accent)' : 'var(--accent2)';
+  const fitBg   = f => f >= 90 ? 'rgba(0,212,170,0.1)' : f >= 80 ? 'rgba(108,99,255,0.1)' : 'rgba(255,107,157,0.1)';
+  const fitBorder = f => f >= 90 ? 'rgba(0,212,170,0.25)' : f >= 80 ? 'rgba(108,99,255,0.25)' : 'rgba(255,107,157,0.25)';
+
+  const scoreLabel = jeeRank ? `JEE Rank ${jeeRank}` : neetScore ? `NEET ${neetScore}` : catPct ? `CAT ${catPct}%ile` : clatRank ? `CLAT Rank ${clatRank}` : `${boardPct}% boards`;
+  const locLabel = pref && pref !== 'Any / Open' ? pref : 'All India';
+
+  result.innerHTML = `
+    <h5>🏛️ Top Colleges for <strong>${course}</strong></h5>
+    <p style="font-size:0.78rem;color:var(--text-muted);margin-bottom:16px;">Based on: <strong>${scoreLabel}</strong> · Location: <strong>${locLabel}</strong></p>
+    ${filtered.map(c => `
+      <div class="college-card">
+        <div style="flex:1;">
+          <div class="college-card-name">${c.name}</div>
+          <div class="college-card-sub">${c.sub} · ${c.loc}</div>
+          <div style="font-size:0.7rem;color:var(--text-muted);margin-top:4px;">📋 ${c.req}</div>
+          <div style="font-size:0.7rem;color:var(--text-muted);">💰 Fees: ${c.fee} · 🎯 ${c.placements}</div>
+        </div>
+        <div style="flex-shrink:0;text-align:center;">
+          <div style="background:${fitBg(c.fit)};border:1px solid ${fitBorder(c.fit)};color:${fitColor(c.fit)};padding:5px 12px;border-radius:100px;font-family:'Space Mono',monospace;font-size:0.72rem;font-weight:700;">${c.fit}% fit</div>
+          <div style="font-size:0.65rem;color:var(--text-muted);margin-top:4px;">Tier ${c.tier}</div>
+        </div>
+      </div>`).join('')}
+    <p style="margin-top:14px;font-size:0.75rem;color:var(--text-muted);">✦ Cutoffs are indicative based on recent trends. Actual cutoffs may vary by category (General/OBC/SC/ST) and year. Book a session with our <strong>College Advisor expert</strong> for a full strategy.</p>`;
   result.classList.add('show');
 }
 
