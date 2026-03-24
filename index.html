@@ -806,7 +806,27 @@
     transition: opacity 0.3s;
   }
 
+  .counselor-card { cursor: none; }
   .counselor-card:hover .counselor-avatar::after { opacity: 1; }
+
+  /* COUNSELOR PROFILE MODAL */
+  .cp-header { display:flex; gap:20px; align-items:flex-start; margin-bottom:28px; }
+  .cp-avatar { width:72px; height:72px; border-radius:20px; display:flex; align-items:center; justify-content:center; font-size:2rem; flex-shrink:0; }
+  .cp-name { font-family:'Syne',sans-serif; font-size:1.6rem; font-weight:800; letter-spacing:-0.03em; margin-bottom:4px; }
+  .cp-title { font-size:0.82rem; color:var(--accent); font-family:'Space Mono',monospace; text-transform:uppercase; letter-spacing:0.08em; margin-bottom:8px; }
+  .cp-tags { display:flex; flex-wrap:wrap; gap:6px; margin-bottom:4px; }
+  .cp-tag { padding:3px 10px; border-radius:100px; background:rgba(108,99,255,0.1); border:1px solid rgba(108,99,255,0.25); font-size:0.7rem; color:var(--accent); font-family:'Space Mono',monospace; }
+  .cp-section { margin-bottom:22px; }
+  .cp-section-title { font-family:'Syne',sans-serif; font-size:0.7rem; font-weight:700; text-transform:uppercase; letter-spacing:0.12em; color:var(--text-muted); margin-bottom:10px; padding-bottom:6px; border-bottom:1px solid var(--border); }
+  .cp-bio { font-size:0.9rem; line-height:1.75; color:rgba(240,240,255,0.8); }
+  .cp-stats { display:grid; grid-template-columns:repeat(3,1fr); gap:12px; margin-bottom:22px; }
+  .cp-stat { background:var(--surface2); border:1px solid var(--border); border-radius:12px; padding:14px; text-align:center; }
+  .cp-stat-num { font-family:'Syne',sans-serif; font-size:1.4rem; font-weight:800; background:linear-gradient(135deg,var(--accent),var(--accent2)); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; }
+  .cp-stat-label { font-size:0.68rem; color:var(--text-muted); margin-top:3px; }
+  .cp-expertise-grid { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+  .cp-expertise-item { background:var(--surface2); border:1px solid var(--border); border-radius:10px; padding:10px 12px; font-size:0.78rem; display:flex; gap:8px; align-items:flex-start; }
+  .cp-book-btn { width:100%; padding:14px; background:var(--accent); color:#fff; border:none; border-radius:14px; font-family:'Syne',sans-serif; font-weight:700; font-size:0.92rem; margin-top:8px; cursor:none; transition:opacity 0.2s; }
+  .cp-book-btn:hover { opacity:0.9; }
 
   .counselor-name {
     font-family: 'Syne', sans-serif;
@@ -2499,8 +2519,8 @@
   <h2 class="section-title">Meet our verified counselors.</h2>
   <p class="section-desc">Cluster partners with India's leading career counselors, psychologists, and college advisors to provide human-validated guidance.</p>
 
-  <div class="counselors-grid">
-    <div class="counselor-card reveal">
+<div class="counselors-grid">
+    <div class="counselor-card reveal" onclick="openCounselor('anita')">
       <div class="counselor-avatar" style="background:rgba(108,99,255,0.15);color:#a89cff">🧠</div>
       <div class="counselor-name">Dr. Anita Sharma</div>
       <div class="counselor-title">Educational Psychologist</div>
@@ -2508,7 +2528,7 @@
       <div class="counselor-tag">STEM Careers</div>
     </div>
 
-    <div class="counselor-card reveal" style="transition-delay:0.1s">
+    <div class="counselor-card reveal" style="transition-delay:0.1s" onclick="openCounselor('vikram')">
       <div class="counselor-avatar" style="background:rgba(255,107,157,0.15);color:#ff9ec0">🎯</div>
       <div class="counselor-name">Vikram Nair</div>
       <div class="counselor-title">Career Strategist & Coach</div>
@@ -2516,7 +2536,7 @@
       <div class="counselor-tag">Tech & Management</div>
     </div>
 
-    <div class="counselor-card reveal" style="transition-delay:0.2s">
+    <div class="counselor-card reveal" style="transition-delay:0.2s" onclick="openCounselor('priya')">
       <div class="counselor-avatar" style="background:rgba(0,212,170,0.15);color:#00d4aa">👩‍💼</div>
       <div class="counselor-name">Dr. Priya Mehta</div>
       <div class="counselor-title">Occupational Therapist & Counselor</div>
@@ -2524,7 +2544,7 @@
       <div class="counselor-tag">Neurodiverse Support</div>
     </div>
 
-    <div class="counselor-card reveal" style="transition-delay:0.3s">
+    <div class="counselor-card reveal" style="transition-delay:0.3s" onclick="openCounselor('rajesh')">
       <div class="counselor-avatar" style="background:rgba(255,167,38,0.15);color:#ffa726">🏛️</div>
       <div class="counselor-name">Rajesh Patel</div>
       <div class="counselor-title">College Admissions Expert</div>
@@ -2532,7 +2552,7 @@
       <div class="counselor-tag">College Admissions</div>
     </div>
 
-    <div class="counselor-card reveal" style="transition-delay:0.1s">
+    <div class="counselor-card reveal" style="transition-delay:0.1s" onclick="openCounselor('sunita')">
       <div class="counselor-avatar" style="background:rgba(41,182,246,0.15);color:#29b6f6">🌐</div>
       <div class="counselor-name">Dr. Sunita Krishnan</div>
       <div class="counselor-title">Clinical Psychologist</div>
@@ -2540,7 +2560,7 @@
       <div class="counselor-tag">Mental Wellbeing</div>
     </div>
 
-    <div class="counselor-card reveal" style="transition-delay:0.2s">
+    <div class="counselor-card reveal" style="transition-delay:0.2s" onclick="openCounselor('arun')">
       <div class="counselor-avatar" style="background:rgba(156,39,176,0.15);color:#ce93d8">💡</div>
       <div class="counselor-name">Arun Gupta</div>
       <div class="counselor-title">Entrepreneurship Mentor</div>
@@ -2548,7 +2568,7 @@
       <div class="counselor-tag">Entrepreneurship</div>
     </div>
 
-    <div class="counselor-card reveal" style="transition-delay:0.3s">
+    <div class="counselor-card reveal" style="transition-delay:0.3s" onclick="openCounselor('nisha')">
       <div class="counselor-avatar" style="background:rgba(244,67,54,0.15);color:#ef9a9a">⚖️</div>
       <div class="counselor-name">Adv. Nisha Rao</div>
       <div class="counselor-title">Legal & Civil Services Advisor</div>
@@ -2556,7 +2576,7 @@
       <div class="counselor-tag">Law & UPSC</div>
     </div>
 
-    <div class="counselor-card reveal" style="transition-delay:0.4s">
+    <div class="counselor-card reveal" style="transition-delay:0.4s" onclick="openCounselor('meera')">
       <div class="counselor-avatar" style="background:rgba(0,150,136,0.15);color:#80cbc4">🎨</div>
       <div class="counselor-name">Meera Iyer</div>
       <div class="counselor-title">Creative Arts & Design Counselor</div>
@@ -2565,6 +2585,14 @@
     </div>
   </div>
 </section>
+
+<!-- COUNSELOR PROFILE MODAL -->
+<div id="counselorModal" onclick="if(event.target===this)closeCounselor()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.75);backdrop-filter:blur(8px);z-index:9000;display:none;align-items:center;justify-content:center;padding:20px;">
+  <div id="counselorCard" style="background:var(--surface);border:1px solid rgba(108,99,255,0.25);border-radius:28px;max-width:620px;width:100%;max-height:88vh;overflow-y:auto;position:relative;padding:48px;box-shadow:0 40px 100px rgba(0,0,0,0.6);">
+    <button onclick="closeCounselor()" style="position:absolute;top:20px;right:20px;width:36px;height:36px;border-radius:50%;background:var(--surface2);border:1px solid var(--border);color:var(--text-muted);font-size:1rem;display:flex;align-items:center;justify-content:center;">✕</button>
+    <div id="counselorContent"></div>
+  </div>
+</div>
 
 <div class="divider"></div>
 
@@ -3085,6 +3113,202 @@ document.addEventListener('mousedown', () => { dot.style.transform = dot.style.t
 document.addEventListener('mouseup', () => { dot.style.opacity='1'; ring.style.opacity='1'; });
 
 // =====================
+// COUNSELOR PROFILE MODAL
+// =====================
+const counselorDB = {
+  anita: {
+    name:'Dr. Anita Sharma', title:'Educational Psychologist', emoji:'🧠',
+    color:'rgba(108,99,255,0.15)', border:'rgba(108,99,255,0.3)', textColor:'#a89cff',
+    tags:['STEM Careers','Psychometrics','Research Guidance','IIT/NIT Prep','Gifted Students'],
+    stats:[{n:'18 yrs',l:'Experience'},{n:'4,200+',l:'Students Guided'},{n:'4.9★',l:'Rating'}],
+    bio:'Dr. Anita Sharma holds a Ph.D. in Educational Psychology from IIT Delhi and an M.Phil. from NIMHANS Bangalore. She began her career as a school counselor at DPS RK Puram before moving into private practice and later joining Cluster\'s expert panel. Her research on "Psychometric Predictors of Academic Success in STEM Fields" has been published in three peer-reviewed journals. She is a certified practitioner of the Strong Interest Inventory, MBTI, and Holland RIASEC assessments.\n\nOver 18 years, Dr. Sharma has worked with students from Class 9 through postgraduate level, helping them navigate stream selection, entrance exam strategy, and research career pathways. She has a particular passion for identifying gifted students who may be underperforming due to mismatched learning styles, and for guiding them toward careers in research, academia, and advanced STEM fields.',
+    expertise:[
+      {i:'🔬',t:'Research Career Planning',d:'Guiding students toward IISER, TIFR, IISc and PhD programs in India & abroad'},
+      {i:'🧪',t:'STEM Psychometrics',d:'Holland RIASEC, Strong Interest Inventory, and cognitive aptitude testing'},
+      {i:'📚',t:'Gifted Student Counseling',d:'Specialized support for high-ability students who need advanced or accelerated pathways'},
+      {i:'🎓',t:'IIT/NIT Strategy',d:'Full JEE roadmap including stream selection, coaching evaluation, and branch strategy'},
+      {i:'🧠',t:'Learning Style Analysis',d:'Identifies visual/auditory/kinesthetic learning preferences and adapts study plans accordingly'},
+      {i:'🌐',t:'International Research Programs',d:'KVPY, Olympiads, DAAD, Fulbright, and summer research internship applications'},
+    ],
+    education:['Ph.D. Educational Psychology — IIT Delhi (2008)','M.Phil. Clinical Psychology — NIMHANS Bangalore (2004)','M.A. Psychology — Delhi University (2002)','B.A. (Hons) Psychology — Lady Shri Ram College, DU (2000)'],
+    certs:['Certified Holland RIASEC Practitioner','MBTI Certified Practitioner (CPP Inc.)','Certified School Counselor — CBSE Panel','RCI-affiliated Psychologist'],
+    publications:['Psychometric Predictors of Academic Success in STEM — Journal of Educational Psychology India, 2019','Stream Selection Anxiety in Indian Adolescents — NIMHANS Journal, 2016','Gifted Underachievers in STEM — Indian Journal of Applied Psychology, 2014'],
+  },
+  vikram: {
+    name:'Vikram Nair', title:'Career Strategist & Executive Coach', emoji:'🎯',
+    color:'rgba(255,107,157,0.15)', border:'rgba(255,107,157,0.3)', textColor:'#ff9ec0',
+    tags:['Tech Careers','MBA Strategy','Career Switch','Salary Negotiation','Leadership Coaching'],
+    stats:[{n:'14 yrs',l:'Experience'},{n:'3,500+',l:'Coaching Sessions'},{n:'4.8★',l:'Rating'}],
+    bio:'Vikram Nair spent 12 years at Infosys, rising to the position of Senior HR Director before transitioning into full-time career coaching. He is a Certified Career Coach (CCF) from the Career Development Association of India and a certified practitioner of the Hogan Personality Inventory. At Infosys, he was responsible for talent development programs across 15,000+ employees, giving him an unmatched insider view of how top tech companies evaluate and hire candidates.\n\nVikram specializes in helping engineering graduates navigate the critical first five years of their career, MBA applicants craft compelling applications and interview narratives, and mid-career professionals orchestrate strategic transitions into product management, consulting, or leadership roles. His "IIT to Impact" workshop series has been attended by over 800 students across seven IITs.',
+    expertise:[
+      {i:'💻',t:'Tech Career Pathways',d:'Software engineering, product management, data science, and DevOps career ladders'},
+      {i:'🎓',t:'MBA Application Strategy',d:'CAT/GMAT prep, SOP writing, interview coaching for IIMs, ISB, and top global schools'},
+      {i:'🔄',t:'Career Switch Coaching',d:'Structured frameworks to pivot from one domain to another with minimum risk'},
+      {i:'💰',t:'Salary Negotiation',d:'Compensation benchmarking and negotiation tactics for freshers and experienced hires'},
+      {i:'📈',t:'LinkedIn & Personal Branding',d:'Profile optimization, content strategy, and network building for career advancement'},
+      {i:'🏢',t:'FAANG Interview Prep',d:'Resume review, DSA strategy, system design, and behavioral interview coaching'},
+    ],
+    education:['MBA (HR & Strategy) — IIM Kozhikode (2010)','B.Tech. Computer Science — NIT Calicut (2007)'],
+    certs:['Certified Career Coach (CCF) — CDAI','Hogan Personality Inventory Practitioner','ICF Associate Certified Coach (ACC)','SHRM Senior Certified Professional (SHRM-SCP)'],
+    publications:['The First 90 Days in Tech: A Fresher\'s Guide — Published on LinkedIn, 500K+ reads','Engineering to MBA: Making the Leap — Career Insider Magazine, 2021'],
+  },
+  priya: {
+    name:'Dr. Priya Mehta', title:'Occupational Therapist & Career Counselor', emoji:'👩‍💼',
+    color:'rgba(0,212,170,0.15)', border:'rgba(0,212,170,0.3)', textColor:'#00d4aa',
+    tags:['Neurodiverse Students','ADHD Support','Alternative Careers','Sensory Needs','Inclusive Counseling'],
+    stats:[{n:'11 yrs',l:'Experience'},{n:'1,800+',l:'Students Supported'},{n:'4.9★',l:'Rating'}],
+    bio:'Dr. Priya Mehta is a registered Occupational Therapist (OT) with a dual specialization in pediatric OT and vocational rehabilitation. She completed her MOT from Manipal University and later pursued a postgraduate diploma in Career Counseling from IGNOU. She is one of very few counselors in India who bridges the gap between occupational therapy and career guidance, making her an invaluable resource for students with ADHD, dyslexia, autism spectrum conditions, sensory processing differences, and physical disabilities.\n\nDr. Priya works with families, schools, and students to identify unique strengths that conventional counseling often overlooks. She has developed her own assessment framework — the "Functional Aptitude Mapping" (FAM) protocol — which evaluates careers based on sensory demands, social load, executive function requirements, and physical environment, not just intellectual ability.',
+    expertise:[
+      {i:'🧩',t:'Neurodiverse Career Planning',d:'Specialized assessment and career roadmaps for ADHD, autism, dyslexia, and giftedness'},
+      {i:'🏥',t:'Vocational Rehabilitation',d:'Career re-entry and pathway planning for students with physical or mental health conditions'},
+      {i:'📋',t:'Functional Aptitude Mapping',d:'Proprietary framework matching careers to individual sensory, cognitive, and physical profiles'},
+      {i:'🎯',t:'Alternative Career Discovery',d:'Non-mainstream pathways including freelancing, vocational trades, and creative industries'},
+      {i:'👨‍👩‍👧',t:'Parent & Family Counseling',d:'Helping families understand and support their neurodivergent child\'s unique potential'},
+      {i:'🏫',t:'School & IEP Coordination',d:'Works with school counselors to align Individual Education Plans with long-term career goals'},
+    ],
+    education:['MOT (Occupational Therapy) — Manipal University (2012)','PG Diploma in Career Counseling — IGNOU (2016)','B.OT — Manipal University (2010)'],
+    certs:['Registered Occupational Therapist — COA India','Certified Autism Spectrum Disorder Specialist (CASDS)','ADHD Coaching Credential — PAAC','Sensory Integration Certified Practitioner'],
+    publications:['Functional Aptitude Mapping: A New Framework for Neurodiverse Career Counseling — Indian Journal of Occupational Therapy, 2020','ADHD and Career Choice: What Schools Get Wrong — Special Education Today, 2018'],
+  },
+  rajesh: {
+    name:'Rajesh Patel', title:'College Admissions Expert & Consultant', emoji:'🏛️',
+    color:'rgba(255,167,38,0.15)', border:'rgba(255,167,38,0.3)', textColor:'#ffa726',
+    tags:['IIT/NIT Admissions','International Universities','SOP & LOR','Scholarship Strategy','JoSAA Counselling'],
+    stats:[{n:'10 yrs',l:'Experience'},{n:'3,100+',l:'Admissions Guided'},{n:'₹12Cr+',l:'Scholarships Won'}],
+    bio:'Rajesh Patel has spent over a decade as one of India\'s most sought-after college admissions consultants. He began his career in the admissions office of a leading engineering college before founding his own practice in 2015. He has a deep understanding of the JoSAA and CSAB counselling process, having personally guided over 1,200 students through the seat allocation rounds, helping them optimize branch and institute choices based on rank, category, and career goals.\n\nOn the international front, Rajesh has guided students to MIT, Stanford, Cambridge, ETH Zurich, University of Toronto, and top Australian universities. He is particularly known for his scholarship strategy expertise — his students have collectively won over ₹12 crore in merit and need-based scholarships. He conducts annual SOP workshops and mock admissions interviews that are attended by hundreds of students each year.',
+    expertise:[
+      {i:'🎓',t:'JoSAA/CSAB Strategy',d:'Round-by-round seat optimization, branch vs. college trade-offs, and upgrade planning'},
+      {i:'🌐',t:'International Admissions',d:'USA (Common App), UK (UCAS), Canada, Australia, Germany — complete application support'},
+      {i:'📝',t:'SOP & Personal Statement',d:'Statement of Purpose writing and editing for engineering, management, and research programs'},
+      {i:'💰',t:'Scholarship Identification',d:'Matching students to 200+ merit, need, and country-specific scholarship programs'},
+      {i:'📬',t:'LOR Strategy',d:'Advising on recommender selection and brief composition to maximize impact'},
+      {i:'🏥',t:'NEET Admissions Counseling',d:'State quota, AIQ, deemed university, and management quota admission strategy for MBBS'},
+    ],
+    education:['MBA (Operations) — NMIMS Mumbai (2014)','B.E. Mechanical — Gujarat Technological University (2011)'],
+    certs:['Certified Education Planner (CEP) — IECA','Registered College Admissions Counselor — NACAC','JoSAA Certified Counselor (informal designation, 1000+ rounds tracked)'],
+    publications:['JoSAA Decoded: The Complete Guide — Self-published, 45,000+ downloads','The SOP Blueprint — Career Insider Magazine Series, 2022'],
+  },
+  sunita: {
+    name:'Dr. Sunita Krishnan', title:'Clinical Psychologist & Adolescent Therapist', emoji:'🌐',
+    color:'rgba(41,182,246,0.15)', border:'rgba(41,182,246,0.3)', textColor:'#29b6f6',
+    tags:['Mental Health','Career Anxiety','Adolescent Therapy','Burnout Recovery','Parental Counseling'],
+    stats:[{n:'16 yrs',l:'Experience'},{n:'2,800+',l:'Therapy Hours'},{n:'4.9★',l:'Rating'}],
+    bio:'Dr. Sunita Krishnan is an RCI-registered Clinical Psychologist with 16 years of experience in adolescent mental health. She completed her M.Phil. (Clinical Psychology) from NIMHANS — one of India\'s most prestigious clinical training programs — and subsequently pursued a short-term fellowship in Adolescent Psychiatry at AIIMS Delhi. She currently maintains a private practice in Bangalore while consulting for two CBSE schools and the Cluster expert panel.\n\nDr. Sunita specializes in the psychological dimensions of career decision-making: exam anxiety, perfectionism, fear of failure, parental pressure, identity confusion, and post-result distress. She is one of few counselors in India who takes a truly integrative approach — combining evidence-based CBT techniques with psychometric career assessment, so students develop not just a career plan but the emotional resilience to pursue it. She has delivered workshops on adolescent mental health at NIMHANS, AIIMS, and several IITs.',
+    expertise:[
+      {i:'🧠',t:'Career Anxiety & Exam Stress',d:'CBT-based interventions for JEE/NEET exam phobia, performance anxiety, and burnout'},
+      {i:'💔',t:'Post-Result Distress',d:'Counseling for students who didn\'t get their target rank or college — rebuilding and re-strategizing'},
+      {i:'👨‍👩‍👧',t:'Parental Pressure Management',d:'Family sessions to align parent expectations with student capabilities and well-being'},
+      {i:'🪞',t:'Identity & Purpose Exploration',d:'Helping adolescents discover who they are beyond academic performance and societal roles'},
+      {i:'😴',t:'Burnout Recovery',d:'Structured recovery plans for students who have hit emotional and academic walls'},
+      {i:'📋',t:'Psychometric Assessment',d:'Clinical-grade personality and aptitude assessments to inform career decisions'},
+    ],
+    education:['M.Phil. Clinical Psychology — NIMHANS Bangalore (2009)','M.A. Psychology — Bangalore University (2007)','B.A. (Hons) Psychology — Christ University (2005)','Fellowship in Adolescent Psychiatry — AIIMS Delhi (2010)'],
+    certs:['RCI-Registered Clinical Psychologist (A-grade)','Certified CBT Practitioner — Beck Institute','Trauma-Informed Care Certified','Mental Health First Aid Trainer — iCall'],
+    publications:['Exam Anxiety in Indian Adolescents: Prevalence and CBT Interventions — NIMHANS Journal, 2018','The Pressure Paradox: How Parental Ambition Affects Student Well-being — Indian Psychiatry Journal, 2020'],
+  },
+  arun: {
+    name:'Arun Gupta', title:'Serial Entrepreneur & Startup Mentor', emoji:'💡',
+    color:'rgba(156,39,176,0.15)', border:'rgba(156,39,176,0.3)', textColor:'#ce93d8',
+    tags:['Entrepreneurship','Startup Strategy','IIM-B Incubator','Funding & VC','EdTech & Social Impact'],
+    stats:[{n:'3 exits',l:'Startups Built'},{n:'200+',l:'Startups Mentored'},{n:'₹50Cr+',l:'Funding Raised'}],
+    bio:'Arun Gupta is a three-time founder who built and exited startups in the EdTech, AgriTech, and SaaS verticals. He is a mentor at the NSRCEL incubator at IIM Bangalore — one of India\'s premier startup accelerators — and serves on the selection committee for two national startup challenges. His first company, an EdTech platform serving rural students, was acquired by a Bangalore-based group in 2018. His second venture raised Series B funding before being merged with a listed entity.\n\nArun is deeply passionate about helping college students identify whether entrepreneurship is the right path for them — and if so, how to build something that solves a real problem. He believes most students approach startups backwards (starting with an idea rather than a problem), and his coaching methodology reverses this: starting with customer discovery, market validation, and founder self-assessment before touching a business plan.',
+    expertise:[
+      {i:'🚀',t:'Startup Ideation & Validation',d:'Customer discovery, problem-solution fit, and lean validation frameworks for first-time founders'},
+      {i:'💰',t:'Fundraising Strategy',d:'Angel networks, VC landscape in India, pitch deck coaching, and term sheet basics'},
+      {i:'🏫',t:'College Incubator Navigation',d:'How to leverage IIT/IIM incubators, BIRAC, DST grants, and Startup India recognition'},
+      {i:'🔄',t:'Founder Self-Assessment',d:'Honest evaluation of whether a student has the temperament and circumstances for entrepreneurship'},
+      {i:'📈',t:'Growth & GTM Strategy',d:'Early-stage go-to-market, pricing, and distribution channel strategy'},
+      {i:'🌐',t:'EdTech & Social Ventures',d:'Specialized guidance for education, health, and social impact startups targeting underserved markets'},
+    ],
+    education:['MBA — IIM Bangalore (2011)','B.Tech. Electronics — IIT Roorkee (2007)'],
+    certs:['Certified Startup Mentor — NITI Aayog Atal Innovation Mission','Mentor of Change — AIM India','NSRCEL Resident Mentor — IIM Bangalore'],
+    publications:['Why 90% of Student Startups Fail (And How Yours Won\'t) — YourStory, 2022','From Campus to Cap Table: The Founder\'s First Year — Startup Insider Magazine, 2021'],
+  },
+  nisha: {
+    name:'Adv. Nisha Rao', title:'Legal Career & Civil Services Advisor', emoji:'⚖️',
+    color:'rgba(244,67,54,0.15)', border:'rgba(244,67,54,0.3)', textColor:'#ef9a9a',
+    tags:['UPSC/IAS Prep','Law Careers','CLAT Strategy','Judiciary','Public Policy'],
+    stats:[{n:'9 yrs',l:'Experience'},{n:'1,500+',l:'Students Mentored'},{n:'47',l:'UPSC Selections'}],
+    bio:'Advocate Nisha Rao is a practicing lawyer at the Karnataka High Court with 9 years of experience in constitutional and administrative law. She holds an LLM from NLSIU Bangalore — the country\'s top law school — and completed her LLB from the same institution after cracking CLAT with an All India Rank of 38. After practicing law for 5 years, she was drawn to mentoring — having personally experienced the lack of quality guidance for aspiring lawyers and civil servants.\n\nNisha has mentored 47 students who cleared the UPSC Civil Services Examination, including two who ranked in the top 50 All India. She is known for her no-nonsense approach to UPSC preparation — providing honest assessments of optional subjects, debunking coaching industry myths, and helping students build reading lists that are actually useful rather than exhaustive. For law aspirants, she provides CLAT strategy, law school selection, and bar preparation guidance.',
+    expertise:[
+      {i:'⚖️',t:'CLAT Strategy & Prep',d:'Full CLAT roadmap including section-wise strategy, mock test analysis, and NLU selection guidance'},
+      {i:'🏛️',t:'UPSC Civil Services',d:'Optional selection, GS strategy, essay workshops, and interview (personality test) preparation'},
+      {i:'👩‍⚖️',t:'Judiciary Career Path',d:'State judicial services, AIBE preparation, and district court practice guidance'},
+      {i:'📜',t:'Law School Life & Internships',d:'NLU culture, mooting, clinic internships, chamber practice, and law firm placement strategy'},
+      {i:'🌐',t:'Public Policy & Governance',d:'Careers in policy think tanks, legislative research, and international organizations'},
+      {i:'📝',t:'UPSC Interview Coaching',d:'Mock interviews, DAF review, and board simulation for UPSC personality test'},
+    ],
+    education:['LLM (Constitutional Law) — NLSIU Bangalore (2017)','LLB (Hons) — NLSIU Bangalore (2015)','B.A. Political Science — Bangalore University (2012)'],
+    certs:['Enrolled Advocate — Karnataka Bar Council','UPSC Interview Mock Board Member (informal panel)','Legal Aid Panel Lawyer — Karnataka Legal Services Authority'],
+    publications:['Cracking CLAT Without Coaching — Self-published guide, 30,000+ downloads','The UPSC Optional Myth: What Actually Works — IAS Baba Blog, 2021'],
+  },
+  meera: {
+    name:'Meera Iyer', title:'Creative Arts & Design Career Counselor', emoji:'🎨',
+    color:'rgba(0,150,136,0.15)', border:'rgba(0,150,136,0.3)', textColor:'#80cbc4',
+    tags:['UX/UI Design','NID/UCEED Prep','Fashion & Film','Creative Portfolio','Design Education'],
+    stats:[{n:'13 yrs',l:'Experience'},{n:'2,100+',l:'Students Mentored'},{n:'NID',l:'Faculty Alumna'}],
+    bio:'Meera Iyer is a former Associate Professor in Communication Design at the National Institute of Design (NID), Ahmedabad — India\'s most prestigious design institution. She taught there for 8 years before leaving to start her independent practice as a design career counselor and portfolio coach. She holds an M.Des. in Communication Design from NID and a B.Des. from the College of Art, New Delhi. Her professional background includes stints as a graphic designer at Ogilvy Mumbai and as a UX consultant for two Bangalore-based product startups.\n\nMeera\'s counseling practice is built on one core belief: that creative careers in India are severely misunderstood — both by students and parents — and that with the right guidance, a design or creative career can be as financially rewarding and stable as engineering or medicine. She is particularly effective at helping students build competitive portfolios for NID DAT, UCEED, NIFT, and international design school applications.',
+    expertise:[
+      {i:'🎨',t:'Design Portfolio Coaching',d:'NID DAT, UCEED, NIFT, and international design school portfolio review and development'},
+      {i:'💻',t:'UX/UI Career Pathways',d:'Product design, UX research, interaction design, and motion design career roadmaps'},
+      {i:'👗',t:'Fashion & Textile Design',d:'NIFT strategy, fashion design careers, styling, and merchandising pathways'},
+      {i:'🎬',t:'Film, Animation & Media',d:'FTII, Whistling Woods, and animation school preparation; career paths in film and content'},
+      {i:'🏗️',t:'Architecture & Interior Design',d:'B.Arch/M.Arch pathways, NATA preparation, and interior design career guidance'},
+      {i:'🌐',t:'Global Design Education',d:'Parsons, Central Saint Martins, RCA, and other international design school applications'},
+    ],
+    education:['M.Des. Communication Design — NID Ahmedabad (2011)','B.Des. Graphic Design — College of Art, New Delhi (2008)'],
+    certs:['Associate Professor (retired) — NID Ahmedabad','Design Thinking Facilitator — IDEO U','Certified UX Researcher — Nielsen Norman Group'],
+    publications:['Design as a Career in India: The Complete Truth — Design Dekko Magazine, 2022','Portfolio to Placement: What NID Jurors Actually Look For — Creative Careers India, 2020'],
+  },
+};
+
+function openCounselor(key) {
+  const d = counselorDB[key];
+  if (!d) return;
+  const modal = document.getElementById('counselorModal');
+  document.getElementById('counselorContent').innerHTML = `
+    <div class="cp-header">
+      <div class="cp-avatar" style="background:${d.color};border:1px solid ${d.border};">${d.emoji}</div>
+      <div>
+        <div class="cp-name">${d.name}</div>
+        <div class="cp-title">${d.title}</div>
+        <div class="cp-tags">${d.tags.map(t=>`<span class="cp-tag">${t}</span>`).join('')}</div>
+      </div>
+    </div>
+    <div class="cp-stats">${d.stats.map(s=>`<div class="cp-stat"><div class="cp-stat-num">${s.n}</div><div class="cp-stat-label">${s.l}</div></div>`).join('')}</div>
+    <div class="cp-section">
+      <div class="cp-section-title">About</div>
+      <div class="cp-bio">${d.bio.replace(/\n\n/g,'</p><p style="margin-top:12px;">').replace(/^/,'<p>').replace(/$/,'</p>')}</div>
+    </div>
+    <div class="cp-section">
+      <div class="cp-section-title">Areas of Expertise</div>
+      <div class="cp-expertise-grid">${d.expertise.map(e=>`<div class="cp-expertise-item"><span style="font-size:1.1rem;flex-shrink:0;">${e.i}</span><div><div style="font-family:'Syne',sans-serif;font-weight:700;font-size:0.8rem;margin-bottom:3px;">${e.t}</div><div style="font-size:0.72rem;color:var(--text-muted);line-height:1.4;">${e.d}</div></div></div>`).join('')}</div>
+    </div>
+    <div class="cp-section">
+      <div class="cp-section-title">Education</div>
+      ${d.education.map(e=>`<div style="font-size:0.82rem;margin-bottom:6px;display:flex;gap:8px;"><span style="color:var(--accent);flex-shrink:0;">▸</span>${e}</div>`).join('')}
+    </div>
+    <div class="cp-section">
+      <div class="cp-section-title">Certifications</div>
+      ${d.certs.map(c=>`<div style="font-size:0.82rem;margin-bottom:6px;display:flex;gap:8px;"><span style="color:var(--accent3);flex-shrink:0;">✓</span>${c}</div>`).join('')}
+    </div>
+    <div class="cp-section">
+      <div class="cp-section-title">Publications & Thought Leadership</div>
+      ${d.publications.map(p=>`<div style="font-size:0.82rem;margin-bottom:6px;display:flex;gap:8px;"><span style="color:var(--accent2);flex-shrink:0;">✦</span>${p}</div>`).join('')}
+    </div>
+    <button class="cp-book-btn" onclick="this.textContent='✓ Session Request Sent! We will contact you within 2 hours.';this.style.background='rgba(0,212,170,0.2)';this.style.color='var(--accent3)';this.style.border='1px solid var(--accent3)';">📅 Book a Session with ${d.name.split(' ')[0]} ${d.name.split(' ')[1] || ''}</button>
+  `;
+  modal.style.display = 'flex';
+  document.body.style.overflow = 'hidden';
+}
+
+function closeCounselor() {
+  document.getElementById('counselorModal').style.display = 'none';
+  document.body.style.overflow = '';
+}
+document.addEventListener('keydown', e => { if (e.key === 'Escape') { closeCounselor(); closeModalBtn && closeModalBtn(); } });
+
+// =====================
 // SCROLL REVEAL
 // =====================
 const observer = new IntersectionObserver(entries => entries.forEach(el => {
@@ -3477,15 +3701,26 @@ function showGameInterest() {
   window._gameState = {
     rounds:[
       {q:'If you had a free Saturday you would…',opts:[['🛠️ Build something — app, furniture, gadget','R'],['📖 Deep-dive into a research paper or documentary','I'],['🎨 Create art, music, or write a story','A'],['🤝 Volunteer or hang out with friends','S'],['📈 Start a side hustle or plan a project','E'],['📂 Organise your room, notes, or finances','C']]},
-      {q:'At a company you would most want to…',opts:[['🔧 Work in engineering or product dev','R'],['🔬 Run experiments and publish findings','I'],['✏️ Lead design and creative direction','A'],['💬 Build community and manage people','S'],['🏆 Lead the company and set strategy','E'],['📊 Manage operations and compliance','C']]},
-      {q:'Your dream project is…',opts:[['🚗 Building an electric car from scratch','R'],['🧬 Solving a rare disease','I'],['🎬 Directing an award-winning film','A'],['🌍 Running an NGO that changes lives','S'],['🦄 Founding a unicorn startup','E'],['🏦 Managing a billion-dollar fund','C']]},
+      {q:'At a company you would most want to…',opts:[['🔧 Work in engineering or product development','R'],['🔬 Run experiments and publish research findings','I'],['✏️ Lead design and creative direction','A'],['💬 Build community and manage people','S'],['🏆 Lead strategy and drive growth','E'],['📊 Manage operations and compliance','C']]},
+      {q:'Your dream project is…',opts:[['🚗 Building an electric car from scratch','R'],['🧬 Solving a rare disease','I'],['🎬 Directing an award-winning film','A'],['🌍 Running an NGO that changes 10,000 lives','S'],['🦄 Founding a unicorn startup','E'],['🏦 Managing a billion-dollar fund','C']]},
+      {q:'When you face a hard problem you prefer to…',opts:[['🔩 Take it apart physically or hands-on','R'],['📊 Research, collect data, and analyse','I'],['💭 Brainstorm wildly and experiment creatively','A'],['🗣️ Talk it through with others','S'],['⚡ Make a decision quickly and iterate','E'],['📋 Follow a structured step-by-step checklist','C']]},
+      {q:'Which of these school activities excited you most?',opts:[['🧰 Labs, shop class, or building projects','R'],['🔭 Science fairs, Olympiads, or debating ideas','I'],['🎭 Art, drama, music, or creative writing','A'],['🤝 Student council, clubs, or helping juniors','S'],['📣 Organising events or leading groups','E'],['📐 Maths Olympiad, accounts, or quizzes','C']]},
+      {q:'Your ideal work environment is…',opts:[['🏭 Workshop, lab, or outdoor fieldwork','R'],['📚 Research institute, library, or quiet office','I'],['🎨 Studio, open creative space, or home office','A'],['🏥 Hospital, school, NGO, or community space','S'],['🏢 Dynamic office, boardroom, or startup floor','E'],['🏦 Structured corporate or government office','C']]},
+      {q:'People often come to you for…',opts:[['🔧 Fixing, making, or building things','R'],['🧠 Explaining complex ideas simply','I'],['🎨 Creative input, design, or writing help','A'],['❤️ Advice, support, or someone to listen','S'],['📣 Leadership, motivation, or new ideas','E'],['📋 Organisation, accuracy, or reliability','C']]},
+      {q:'In 20 years, your legacy will be…',opts:[['🏗️ Something I built that physically exists','R'],['📜 A discovery or paper that advanced knowledge','I'],['🖼️ A creative work that moved people','A'],['🌱 Lives I improved directly','S'],['🏢 A company or movement I led','E'],['⚖️ Systems I built that kept things running smoothly','C']]},
     ],
     scores:{R:0,I:0,A:0,S:0,E:0,C:0},
     qi:0,
     names:{R:'Realistic',I:'Investigative',A:'Artistic',S:'Social',E:'Enterprising',C:'Conventional'},
-    careers:{R:'Engineering, Surgery, Piloting, Architecture',I:'Research, Medicine, Data Science, Academia',A:'Design, Filmmaking, Writing, Music',S:'Psychology, Teaching, HR, Social Work',E:'Entrepreneurship, Law, Management, Politics',C:'Finance, Accounting, Administration, Logistics'},
+    careers:{R:'Engineering, Surgery, Piloting, Architecture, Robotics',I:'Research Scientist, Data Scientist, Doctor, Economist',A:'UX Designer, Filmmaker, Writer, Architect, Musician',S:'Psychologist, Teacher, HR Manager, Social Worker, NGO Leader',E:'Entrepreneur, Lawyer, Product Manager, Consultant, Politician',C:'CA, Banker, Actuary, Operations Manager, Civil Servant'},
+    desc:{R:'You are hands-on and practical. You thrive when you can see, touch, or build real things.',I:'You are analytical and curious. You love asking "why" and going deep into complex problems.',A:'You are creative and expressive. You see the world in ways others miss and love making something out of nothing.',S:'You are empathetic and people-centred. Your energy comes from helping, teaching, and connecting with others.',E:'You are ambitious and persuasive. You naturally lead, influence, and are drawn to impact at scale.',C:'You are organised and precise. You bring order, reliability, and accuracy to everything you do.'},
   };
-  setArea(`<div class="module-live"><h4>🎮 Gamified Interest Discovery</h4><div id="game_q"></div><div class="live-result" id="game_result"></div></div>`);
+  setArea(`<div class="module-live">
+    <h4>🎮 Gamified Interest Discovery</h4>
+    <p style="font-size:0.82rem;color:var(--text-muted);margin-bottom:16px;">8 quick rounds — pick the option that feels most like you. No right or wrong answers.</p>
+    <div id="game_q"></div>
+    <div class="live-result" id="game_result"></div>
+  </div>`);
   renderGameQ();
 }
 
@@ -3496,24 +3731,31 @@ function renderGameQ() {
     const top = sorted[0];
     document.getElementById('game_q').style.display = 'none';
     const res = document.getElementById('game_result');
-    res.innerHTML = `<h5>🌈 Your Interest Profile</h5>` +
+    res.innerHTML = `<h5>🌈 Your RIASEC Interest Profile</h5>
+      <div style="margin-bottom:16px;">` +
       sorted.map(([k,v]) => `<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
-        <div style="width:90px;font-size:0.75rem;">${g.names[k]}</div>
-        <div style="flex:1;height:8px;background:var(--surface2);border-radius:4px;overflow:hidden;">
-          <div style="height:100%;width:${Math.round(v/g.rounds.length*100)}%;background:linear-gradient(90deg,var(--accent),var(--accent2));border-radius:4px;"></div>
+        <div style="width:90px;font-size:0.75rem;color:${k===top[0]?'var(--accent3)':'var(--text-muted)'};">${g.names[k]}</div>
+        <div style="flex:1;height:9px;background:var(--surface2);border-radius:5px;overflow:hidden;">
+          <div style="height:100%;width:${Math.round(v/g.rounds.length*100)}%;background:${k===top[0]?'linear-gradient(90deg,var(--accent3),var(--accent))':'linear-gradient(90deg,var(--accent),var(--accent2))'};border-radius:5px;transition:width 0.8s ease;"></div>
         </div>
-        <div style="font-size:0.72rem;color:var(--text-muted);">${Math.round(v/g.rounds.length*100)}%</div>
-      </div>`).join('') +
-      `<br><strong style="color:var(--accent3)">Your type: ${g.names[top[0]]}</strong>
-       <p style="margin-top:6px;font-size:0.82rem;">Best careers: <strong>${g.careers[top[0]]}</strong></p>`;
+        <div style="font-size:0.72rem;color:var(--text-muted);width:32px;text-align:right;">${Math.round(v/g.rounds.length*100)}%</div>
+      </div>`).join('') + `</div>
+      <div style="background:rgba(108,99,255,0.08);border:1px solid rgba(108,99,255,0.2);border-radius:12px;padding:14px;margin-bottom:12px;">
+        <div style="font-family:'Syne',sans-serif;font-weight:800;font-size:1rem;color:var(--accent3);margin-bottom:6px;">Your dominant type: ${g.names[top[0]]} (${top[0]})</div>
+        <p style="font-size:0.82rem;line-height:1.6;margin-bottom:8px;">${g.desc?.[top[0]]||''}</p>
+        <p style="font-size:0.8rem;"><strong>Best career matches:</strong> ${g.careers[top[0]]}</p>
+      </div>
+      <p style="font-size:0.75rem;color:var(--accent);">✦ Your secondary type is <strong>${g.names[sorted[1][0]]}</strong> — careers that blend both types are often the best fit for you.</p>`;
     res.classList.add('show');
     return;
   }
   const r = g.rounds[g.qi];
   document.getElementById('game_q').innerHTML =
-    `<div style="font-family:'Syne',sans-serif;font-weight:700;margin-bottom:14px;font-size:0.9rem;">Round ${g.qi+1}/${g.rounds.length}: ${r.q}</div>` +
+    `<div style="font-family:'Syne',sans-serif;font-weight:700;margin-bottom:14px;font-size:0.9rem;">
+      <span style="color:var(--accent);font-family:'Space Mono',monospace;font-size:0.7rem;">Round ${g.qi+1} of ${g.rounds.length}</span><br>${r.q}
+    </div>` +
     r.opts.map(([label,code]) =>
-      `<button onclick="window._gameState.scores['${code}']++;window._gameState.qi++;renderGameQ();" style="display:block;width:100%;text-align:left;padding:10px 14px;margin-bottom:8px;background:var(--surface2);border:1px solid var(--border);border-radius:10px;color:var(--text);font-size:0.82rem;">${label}</button>`
+      `<button onclick="window._gameState.scores['${code}']++;window._gameState.qi++;renderGameQ();" style="display:block;width:100%;text-align:left;padding:10px 14px;margin-bottom:8px;background:var(--surface2);border:1px solid var(--border);border-radius:10px;color:var(--text);font-size:0.82rem;transition:border-color 0.15s,background 0.15s;" onmouseover="this.style.borderColor='var(--accent)';this.style.background='rgba(108,99,255,0.08)'" onmouseout="this.style.borderColor='var(--border)';this.style.background='var(--surface2)'">${label}</button>`
     ).join('');
 }
 
@@ -4582,25 +4824,82 @@ function getClusterAnswer(msg) {
   if (/government job|sarkari|bank job|ibps|ssc|railway|defence/.test(q))
     return `<strong>Government Career Paths:</strong><br>🏛️ <strong>Civil Services (UPSC):</strong> IAS/IPS/IFS — highest prestige. Salary + perks + power.<br>🏦 <strong>Banking:</strong> IBPS PO/Clerk, SBI PO — stable, good salary ₹40K–80K/month.<br>🚆 <strong>Railways (RRB):</strong> Multiple posts across all qualifications.<br>🛡️ <strong>Defence:</strong> NDA (after 12th), CDS, AFCAT for commissioned officer.<br>📊 <strong>SSC:</strong> CGL for graduation-level posts in central government.<br>All have job security, pension, and good work-life balance. Prepare for at least 6–12 months.`;
 
-  // Commerce/Arts/specific streams handled
+  // Commerce/Arts/specific streams
   if (/bcom|commerce career|finance career/.test(q))
-    return `<strong>Commerce Career Options:</strong> CA (most respected), CFA (global finance), CS (Company Secretary), CMA, MBA Finance, Banking (IBPS), Actuarial Science, FinTech. <strong>Best path:</strong> BCom (H) from DU/NMIMS + CA simultaneously. CA earns ₹7–35 LPA, IIM MBA after work exp can reach ₹30–80 LPA. The commerce stream has more high-paying career options than most people realize.`;
+    return `<strong>Commerce Career Options:</strong> CA (most respected), CFA (global finance), CS (Company Secretary), CMA, MBA Finance, Banking (IBPS), Actuarial Science, FinTech. <strong>Best path:</strong> BCom (H) from DU/NMIMS + CA simultaneously. CA earns ₹7–35 LPA, IIM MBA after work exp can reach ₹30–80 LPA.`;
+
+  // Architecture
+  if (/architect|b\.?arch|nata|architecture career/.test(q))
+    return `<strong>Architecture Career:</strong> Gateway exam: <strong>NATA</strong> (National Aptitude Test in Architecture) or JEE Paper 2. Top colleges: SPA Delhi, CEPT Ahmedabad, IIT Kharagpur, NIT Calicut. B.Arch is 5 years. After graduating: join a firm, go independent, or specialize in urban planning or interior design. <strong>Salary:</strong> ₹4–8 LPA entry, ₹15–40 LPA with 10 years experience. Key skills: AutoCAD, Revit, SketchUp, and strong drawing fundamentals.`;
+
+  // Fashion / NIFT
+  if (/fashion|nift|textile|styling/.test(q))
+    return `<strong>Fashion & Design Career:</strong> Gateway: <strong>NIFT entrance exam</strong> — covers creative ability, situation test, and general ability. Top colleges: NIFT Delhi/Mumbai/Chennai, Pearl Academy, Symbiosis Institute of Design. Specializations: fashion design, textile design, fashion communication, merchandising. <strong>Salary:</strong> ₹3–8 LPA entry, ₹15–30 LPA as creative director. International brands like Zara, H&M, and Myntra recruit from NIFT campuses.`;
+
+  // Animation / gaming
+  if (/animation|game design|gaming|vfx|3d artist/.test(q))
+    return `<strong>Animation & Game Design Career:</strong> Top courses: B.Des Animation (NID, Srishti), B.Sc Animation (Arena, MAAC, Frameboxx), B.Sc Game Design (ICAT, Arena). Skills: Maya, Blender, Unity, Unreal Engine. <strong>Industry:</strong> Film VFX (Prana Studios, DQ Entertainment), gaming (Ubisoft, EA, Zynga India), advertising animation. <strong>Salary:</strong> ₹3–6 LPA entry, ₹15–40 LPA senior VFX/game artists at global studios. Freelance potential is very high.`;
+
+  // Journalism / media
+  if (/journal|media career|iimc|mass comm|content creat|youtuber/.test(q))
+    return `<strong>Journalism & Media Career:</strong> Top institutes: <strong>IIMC New Delhi</strong>, ACJ Chennai, XIC Mumbai, Symbiosis Journalism. Entrance: IIMC entrance exam (May). Specializations: print, broadcast, digital, photojournalism, PR, content strategy. <strong>Digital media salary:</strong> ₹3–8 LPA entry, ₹15–40 LPA for senior editors/content heads. YouTube/creator economy: income varies wildly — treat it as a business. Start building your portfolio NOW — blog, podcast, YouTube channel — before you graduate.`;
+
+  // Biotech / pharmacy
+  if (/biotech|pharmacy|pharma|pharmacist|biotechnology/.test(q))
+    return `<strong>Biotechnology & Pharmacy:</strong> B.Pharm / M.Pharm is the pharmacy path — GPAT is the key postgrad entrance. Biotech: BSc/BTech Biotech from JNU, BHU, VIT, Amity. Career paths: pharma R&D, clinical research, regulatory affairs, quality control, bioinformatics. <strong>Salary:</strong> ₹4–10 LPA entry, ₹20–50 LPA in MNC pharma with experience. Top recruiters: Sun Pharma, Dr. Reddy's, Cipla, Biocon, AstraZeneca. NEET score matters for some pharma programs.`;
+
+  // Psychology / social work
+  if (/social work|ngo|tiss|development sector/.test(q))
+    return `<strong>Social Work & Development Sector:</strong> Top path: BA/BSc → MSW from <strong>TISS Mumbai</strong> (best in India), Delhi University, NIMHANS. TISS-NET is the entrance exam. Careers: clinical social work, community development, policy, CSR, international organizations (UN, WHO, UNICEF). <strong>Salary:</strong> NGO sector ₹3–12 LPA, policy/UN ₹20–60 LPA. TISS alumni are highly sought after. Also consider: public policy programs at Azim Premji University, Young India Fellowship, and Ashoka University.`;
+
+  // Sports / fitness career
+  if (/sports career|physical education|fitness trainer|sports management/.test(q))
+    return `<strong>Sports Career in India:</strong> Paths: B.P.Ed (Physical Education), Sports Management (IISM, XLRI Sports), Sports Science, Sports Psychology, Athletic Coaching. Top institutes: LNIPE Gwalior, Amity Sports Management, IISM Mumbai. Alternative: become a certified fitness trainer (ACE, NASM certifications). <strong>Emerging roles:</strong> sports analytics, sports physio, esports management. Salary varies widely — elite coaches earn ₹5–25 LPA, sports management professionals ₹6–20 LPA at corporates.`;
+
+  // Teaching / professor
+  if (/teaching|teacher|professor|b\.?ed|net exam|academic career/.test(q))
+    return `<strong>Teaching & Academic Career:</strong> School teacher: B.Ed degree + CTET/State TET exam. Private school salary: ₹3–8 LPA. College lecturer: NET/SET exam after MA/MSc/MTech. University professor: PhD + NET + research publications. <strong>Salary:</strong> Govt college professor ₹57K–1.8L/month (7th Pay Commission). Teaching is deeply fulfilling — consider it if you love your subject and enjoy explaining things. IIT/IIM professors earn ₹2–5L/month with research grants.`;
+
+  // Which career is best
+  if (/best career|which career|what career|career for me|help me choose/.test(q))
+    return `<strong>Which career is best for you?</strong> The answer depends on 3 things: <strong>(1) What genuinely interests you</strong> — not what pays most or what your parents want; <strong>(2) What you're naturally good at</strong> — strengths that come easier to you than others; <strong>(3) What the market rewards</strong> — skills that are in demand. The sweet spot is where all three overlap. Try our <strong>Gamified Interest Finder</strong> inside the Interest Finder module — it'll reveal your RIASEC type in 8 fun questions. Or just tell me your subjects, interests, and background and I'll suggest 3 specific paths for you right now!`;
+
+  // Stream confusion
+  if (/science or commerce|pcm or pcb|which stream|confused about stream/.test(q))
+    return `<strong>PCM vs PCB vs Commerce:</strong><br>Choose <strong>PCM</strong> if: you love maths, logic, coding, physics, or want to be an engineer, architect, or data scientist.<br>Choose <strong>PCB</strong> if: biology excites you, you want to be a doctor, pharmacist, researcher, or work in healthcare.<br>Choose <strong>PCM+Biology</strong> if: you want maximum flexibility (engineering OR medical).<br>Choose <strong>Commerce</strong> if: business, economics, finance, or law interest you more than science.<br>Choose <strong>Arts</strong> if: humanities, social science, journalism, psychology, or civil services is your calling.<br><strong>Key truth:</strong> All streams lead to great careers. Pick what genuinely interests you — the market rewards passion and skill, not stream names.`;
 
   // Cluster / about
   if (/cluster|about this|what is cluster|this platform/.test(q))
-    return `<strong>About Cluster:</strong> Cluster is an AI-powered career counseling platform built by a passionate team — Viransh Jain (Lead Dev), Dhruvika Varshney (Backend), M Samyuktha (Frontend), Jothirvishal R (Tech Advisor), and D Supriya Reddy (Data). It combines 6 modules: AI Career Counselor, Interest Finder, AI Chatbot, College Advisor, Explainable AI, and a Human Expert Panel. The mission: make world-class career guidance accessible to every Indian student — free from bias, jargon, and gatekeeping.`;
+    return `<strong>About Cluster:</strong> Cluster is an AI-powered career counseling platform built by Viransh Jain (Lead Dev), Dhruvika Varshney (Backend), M Samyuktha (Frontend), Jothirvishal R (Tech Advisor), and D Supriya Reddy (Data). It combines 6 modules: AI Career Counselor, Interest Finder, AI Chatbot, College Advisor, Explainable AI, and a Human Expert Panel. Mission: make world-class career guidance accessible to every Indian student.`;
 
   // Hello / greeting
-  if (/^(hi|hello|hey|namaste|hii|helo|sup|good morning|good afternoon)/.test(q))
-    return `Hello! 👋 I'm <strong>Cluster AI</strong>, your career guide. I can help you with:<br>• Career path guidance after 10th/12th<br>• Exam prep (JEE, NEET, UPSC, CAT, CLAT...)<br>• College selection & admissions<br>• Salary benchmarks & industry insights<br>• Abroad education guidance<br><br>Just ask me anything directly — I give clear, no-nonsense answers! What's on your mind?`;
+  if (/^(hi|hello|hey|namaste|hii|helo|sup|good morning|good afternoon|what's up|wassup)/.test(q))
+    return `Hello! 👋 I'm <strong>Cluster AI</strong> — your personal career guide. Ask me anything:<br>• Which stream/career is right for me?<br>• How to prepare for JEE, NEET, UPSC, CAT, CLAT?<br>• Which colleges should I target?<br>• What's the salary for [any career]?<br>• How to get into design / law / medicine / IIT / IIM?<br>• Should I go abroad for studies?<br><br>I give you direct, complete answers — no redirects, no fluff. What's on your mind?`;
 
   // Thank you
-  if (/thank|thanks|tysm|great|awesome|helpful/.test(q))
-    return `You're welcome! 🎯 Remember — the best career is one that aligns your <strong>interests + skills + market demand</strong>. Cluster is here whenever you need guidance. Feel free to explore our modules above for a full personalized analysis. Best of luck on your journey! ✦`;
+  if (/thank|thanks|tysm|great|awesome|helpful|nice/.test(q))
+    return `You're welcome! 🎯 The best career is where your <strong>interests + strengths + market demand</strong> all intersect. Keep asking — I'm here for everything from "what stream should I pick" to "how do I negotiate my salary". Best of luck! ✦`;
 
-  // Default — intelligent fallback based on keywords
-  const topicGuess = q.includes('college') ? 'college admissions' : q.includes('exam') ? 'entrance exams' : q.includes('career') ? 'career planning' : q.includes('job') ? 'job market' : 'career guidance';
-  return `Great question about <strong>${topicGuess}</strong>! Here's what Cluster recommends: The best path depends on your stream and interests. For a fully personalized answer, try our <strong>AI Career Counselor module</strong> (click any module card above) — enter your stream and interest and get a complete roadmap in seconds. You can also ask me more specifically, like: <em>"What should I do after 12th Science?"</em> or <em>"How do I prepare for UPSC?"</em> — I'll give you a direct, detailed answer right away! 🎯`;
+  // Comprehensive fallback — actually attempt to answer based on keywords
+  const kw = q.split(/\s+/).filter(w => w.length > 3);
+  const careerKws = ['engineer','doctor','lawyer','designer','scientist','teacher','manager','analyst','consultant','banker','artist','writer','filmmaker','pharmacist','nurse','architect','economist','researcher'];
+  const examKws = ['exam','test','preparation','prep','study','score','rank','percentile','cutoff','syllabus'];
+  const colKws = ['college','university','institute','admission','seat','campus'];
+  
+  const isCareer = kw.some(w => careerKws.some(c => c.includes(w) || w.includes(c)));
+  const isExam = kw.some(w => examKws.some(e => e.includes(w) || w.includes(e)));
+  const isCollege = kw.some(w => colKws.some(c => c.includes(w) || w.includes(c)));
+
+  if (isCareer)
+    return `Great question about that career path! Here's Cluster's direct take: Every career in India rewards <strong>genuine skill + consistent effort + right certifications</strong> more than just a degree. For the specific career you're asking about: (1) Identify the top 2–3 entry-level roles; (2) Find which degree/certification gets you there fastest; (3) Build a portfolio or proof of work while studying. Tell me the <strong>specific career name</strong> and I'll give you the exact path, top colleges, salary range, and key exams in one response!`;
+  
+  if (isExam)
+    return `For exam preparation, the universal formula is: <strong>Understand the syllabus completely → Study from the best 2–3 sources (not 10) → Practice previous year papers → Take timed mock tests → Analyse mistakes → Repeat.</strong> Tell me the <strong>specific exam</strong> (JEE, NEET, UPSC, CAT, CLAT, GATE, CUET, etc.) and I'll give you the exact books, timeline, and strategy that works.`;
+  
+  if (isCollege)
+    return `For college selection, focus on: <strong>(1) Placement record</strong> for your target role; <strong>(2) Faculty and research quality</strong>; <strong>(3) Location and network</strong>; <strong>(4) Your actual rank/score fit</strong>. Tell me your course, score, and location preference and I'll recommend the exact colleges with real cutoffs and placement data.`;
+
+  return `I'm Cluster AI and I can answer any career question directly! You asked about <strong>"${msg.slice(0,60)}${msg.length>60?'...':''}"</strong> — tell me a bit more specifically what you'd like to know. For example: "What is the career path for [role]?", "How do I prepare for [exam]?", "Which colleges are best for [course]?", or "What is the salary for [career]?" — and I'll give you a complete, direct answer immediately. 🎯`;
 }
 
 // =====================
