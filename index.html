@@ -4754,152 +4754,189 @@ function selectInterest(el,key){
 // CLUSTER KNOWLEDGE ENGINE
 // =====================
 function getClusterAnswer(msg) {
-  const q = msg.toLowerCase().trim();
+  const raw = msg.trim();
+  const q = raw.toLowerCase();
+  // Helper: word-boundary aware test
+  const has = (...words) => words.some(w => new RegExp('\\b' + w.replace(/[.*+?^${}()|[\]\\]/g,'\\$&') + '\\b').test(q));
+  const hasPhrase = (...phrases) => phrases.some(p => q.includes(p));
 
-  // JEE / IIT
-  if (/\bjee\b|iit|jee main|jee advanced|bitsat/.test(q))
-    return `<strong>JEE Roadmap:</strong> Start with NCERT mastery in Physics, Chemistry & Maths — no shortcuts. Then use HC Verma (Physics), MS Chauhan (Chemistry), and Cengage (Maths). Solve 10 years of JEE papers. Target: JEE Main 99 percentile → JEE Advanced rank under 5000 for IIT CSE. Daily study: 6–8 hrs focused. <strong>Top platforms:</strong> Allen, Vedantu, PW (Physics Wallah). Timeline: 2 years from Class 11 is ideal.`;
+  // Greetings — check early, exact starts
+  if (/^(hi|hello|hey|namaste|hii|helo|sup|yo|good morning|good afternoon|good evening|what'?s up|wassup)[\s!?.]*$/.test(q))
+    return `Hello! 👋 I'm <strong>Cluster AI</strong> — your personal career guide. Ask me anything about careers, exams, colleges, or salaries. What's on your mind?`;
 
-  // NEET
-  if (/\bneet\b|mbbs|medical college|doctor after 12|aiims/.test(q))
-    return `<strong>NEET Strategy:</strong> NCERT Biology is everything — read it 5 times minimum (90% of Bio questions come directly from NCERT). For Physics: HC Verma. For Chemistry: NCERT + Morrison Boyd for Organic. Target score: <strong>650+ for AIIMS/JIPMER</strong>, 600+ for government medical college. Mock tests from October onwards — aim for 3 full mocks per week. NEET is a marathon, not a sprint.`;
+  // Thank you — exact
+  if (/^(thank|thanks|thank you|tysm|thx|ty)[\s!.]*$/.test(q) || hasPhrase('thank you', 'thanks a lot', 'very helpful'))
+    return `You're welcome! 🎯 The best career is where your <strong>interests + strengths + market demand</strong> all intersect. Best of luck on your journey! ✦`;
 
-  // UPSC / IAS
-  if (/upsc|ias|ips|civil service|ifs officer|collector/.test(q))
-    return `<strong>UPSC Civil Services Path:</strong> Foundation: NCERT books 6th–12th for all subjects. Then: Laxmikanth (Polity), Ramesh Singh (Economy), Spectrum (Modern History), GC Leong (Geography). Optional subject choice is critical — pick one you genuinely love. <strong>Timeline:</strong> 12–18 months of dedicated prep. Prelims (June) → Mains (Sept) → Interview. Success rate: ~0.2%. Join a test series by Month 6. Daily newspaper: The Hindu or Indian Express.`;
+  // About Cluster
+  if (hasPhrase('what is cluster', 'about cluster', 'about this platform', 'who made this'))
+    return `<strong>About Cluster:</strong> Cluster is an AI-powered career counseling platform built by Viransh Jain (Lead Dev), Dhruvika Varshney (Backend), M Samyuktha (Frontend), Jothirvishal R (Tech Advisor), and D Supriya Reddy (Data). It combines 6 modules: AI Career Counselor, Interest Finder, AI Chatbot, College Advisor, Explainable AI, and a Human Expert Panel.`;
 
-  // CAT / MBA / IIM
-  if (/\bcat\b|iim|mba|management|pgdm|gmat/.test(q))
-    return `<strong>CAT & MBA Guide:</strong> CAT has 3 sections: VARC, DILR, Quant. <strong>Target: 99+ percentile</strong> for IIM A/B/C. Prep time: 6–8 months. Use: TIME, IMS, or Career Launcher materials. IIM calls at 98+. Also consider: <strong>XLRI (XAT), NMIMS (NMAT), Symbiosis (SNAP)</strong>. Work experience (2+ years) significantly boosts your IIM profile. Average CTC from IIM A: ₹30+ LPA.`;
+  // ── EXAM-SPECIFIC (most specific first) ──────────────────────────────────
+  if (has('jee advanced') || hasPhrase('jee advanced'))
+    return `<strong>JEE Advanced:</strong> Only the top 2.5 lakh JEE Main qualifiers can attempt it. Syllabus is deeper than JEE Main — focus on conceptual clarity, not formula memorisation. Key resources: HC Verma + DC Pandey (Physics), VK Jaiswal + MS Chauhan (Chemistry), Arihant Maths. Target rank under 5000 for IIT CSE. Attempt all previous 15 years' papers under timed conditions. Cut-off for General: ~90/360.`;
 
-  // CA
-  if (/\bca\b|chartered accountant|icai|ca foundation|ca inter/.test(q))
-    return `<strong>CA (Chartered Accountancy):</strong> Path: Foundation → Intermediate → Final + 3 years Articles. Total time: ~4.5–5 years. Pass rates: Foundation 45%, Inter 15–20%, Final 10–15%. <strong>Pro tip:</strong> Register for Foundation right after 12th. ICAI is the only body. Entry-level Big 4 salary: ₹7–12 LPA. After 5 years experience: ₹20–40 LPA. Combine CA with CFA or MBA for maximum impact.`;
+  if (has('jee main') || has('jee') || has('iit') || has('bitsat'))
+    return `<strong>JEE / IIT Roadmap:</strong> NCERT mastery first — every concept, every example. Then HC Verma (Physics), MS Chauhan (Chemistry), Cengage (Maths). Solve 10 years of JEE Main papers. Target: 99+ percentile → JEE Advanced eligibility. Daily study: 6–8 hrs. <strong>Top coaching:</strong> Allen, Vedantu, PW (Physics Wallah). Ideal timeline: 2 years from Class 11.`;
 
-  // Data Science / AI / ML
-  if (/data science|machine learning|\bai\b|artificial intelligence|\bml\b|deep learning/.test(q))
-    return `<strong>Data Science Career:</strong> Skills to build: Python (Pandas, NumPy, Sklearn), SQL, Statistics, ML algorithms, and one of TensorFlow/PyTorch. <strong>Learning path:</strong> Andrew Ng's ML course (Coursera) → Kaggle competitions → real projects. Entry roles: Data Analyst → ML Engineer → Senior DS. <strong>Salaries:</strong> Entry ₹6–15 LPA, Senior ₹25–60 LPA at top firms. Top recruiters: Google, Amazon, Flipkart, CRED, Razorpay. Degree: BTech/BSc + relevant projects matters more than college name.`;
+  if (has('neet') || hasPhrase('medical entrance', 'mbbs entrance'))
+    return `<strong>NEET Strategy:</strong> NCERT Biology cover-to-cover is 90% of the exam — read it 5 times minimum. Physics: HC Verma basics. Chemistry: NCERT + Morrison Boyd for Organic. Target: <strong>650+ for AIIMS/JIPMER</strong>, 600+ for government MBBS. Start mock tests from October — 3 full mocks per week. NEET is offered once a year; plan carefully.`;
 
-  // Software Engineering
-  if (/software engineer|coding|programming|developer|web dev|full stack|backend|frontend/.test(q))
-    return `<strong>Software Engineering Path:</strong> Master: Data Structures & Algorithms (DSA) + one language (Python/Java/C++). For placements: solve 300+ LeetCode problems (medium level). System Design is crucial for senior roles. <strong>Top companies:</strong> Google, Microsoft, Amazon, Flipkart pay ₹20–80 LPA for freshers. Bootcamp alternative: 6-month full-stack course works if you build real projects. GitHub profile with 5+ projects is your resume. College tier matters less than your skills.`;
+  if (has('upsc') || has('ias') || has('ips') || hasPhrase('civil services', 'ifs officer', 'become a collector', 'become an ias'))
+    return `<strong>UPSC Civil Services:</strong> Foundation: NCERT 6th–12th. Then: Laxmikanth (Polity), Ramesh Singh (Economy), Spectrum (History), GC Leong (Geography). Optional subject is critical — pick what you genuinely love. Timeline: 12–18 months. Prelims → Mains → Interview. Success rate ~0.2%. Join a test series by Month 6. Daily newspaper: The Hindu or Indian Express.`;
 
-  // UX / Design
-  if (/ux|ui design|product design|graphic design|figma|design career/.test(q))
-    return `<strong>UX/UI Design Career:</strong> Core tools: Figma (must), Adobe XD, Protopie. Skills: user research, wireframing, prototyping, usability testing. Build 3–5 detailed case studies on Behance. <strong>Salary:</strong> Junior ₹4–8 LPA, Mid-level ₹12–25 LPA, Senior at top tech ₹30–60 LPA. Entry paths: freelance → startup → product company. Best courses: Google UX Design (Coursera), NID/UCEED for formal education. Portfolio matters 10x more than your degree.`;
+  if (has('cat') && (has('exam') || has('prep') || has('preparation') || has('mba') || has('percentile') || has('iim')))
+    return `<strong>CAT & MBA Guide:</strong> CAT has 3 sections: VARC, DILR, Quant. <strong>Target 99+ percentile</strong> for IIM A/B/C. Prep time: 6–8 months. Use TIME, IMS, or Career Launcher. IIM calls start at 98+. Also consider: XLRI (XAT), NMIMS (NMAT), Symbiosis (SNAP). Work experience (2+ years) significantly boosts your profile. IIM A average CTC: ₹30+ LPA.`;
 
-  // Engineering vs Medicine
-  if (/engineering.{0,20}medicine|medicine.{0,20}engineering|vs medicine|vs engineering/.test(q))
-    return `<strong>Engineering vs Medicine — The Real Difference:</strong><br>🔧 <strong>Engineering (4 yrs):</strong> ₹5–80 LPA, fast career growth, diverse roles in tech/core/consulting. JEE is gateway.<br>🏥 <strong>Medicine (5.5 + 3 yrs PG):</strong> ₹15–80 LPA post-specialization, direct impact on lives, more structured path. NEET is gateway.<br><strong>Choose Engineering</strong> if you love logic, tech, and problem-solving systems. <strong>Choose Medicine</strong> if biology drives you and you want to heal people directly. Both are excellent — pick based on your genuine interest, not peer pressure.`;
+  if (hasPhrase('chartered accountant', 'ca foundation', 'ca intermediate', 'ca final', 'ca course', 'become a ca') || (has('ca') && (has('icai') || has('articleship') || has('foundation'))))
+    return `<strong>CA (Chartered Accountancy):</strong> Path: Foundation → Intermediate → Final + 3 years Articles. Total: ~4.5–5 years. Pass rates: Foundation 45%, Inter 15–20%, Final 10–15%. Register for Foundation right after 12th. ICAI is the sole body. Big 4 entry salary: ₹7–12 LPA. After 5 years: ₹20–40 LPA. CA + CFA or MBA = maximum impact.`;
 
-  // Salary / package questions
-  if (/salary|package|lpa|earnings|how much.{0,20}earn|pay/.test(q))
-    return `<strong>India Career Salary Guide (2024):</strong><br>• Software Engineer: ₹5–80 LPA (fresher to senior)<br>• Data Scientist: ₹8–60 LPA<br>• Doctor (post-PG): ₹15–80 LPA<br>• CA: ₹7–35 LPA<br>• IAS Officer: ₹56K–2.5L/month + perks<br>• UX Designer: ₹5–45 LPA<br>• MBA (IIM-A): ₹30–80 LPA average placement<br>• Lawyer (NLU grad): ₹8–50 LPA<br>Salaries vary greatly by city, company, and experience. Tier-1 cities pay 30–50% more than Tier-2.`;
+  if (has('gate') && (has('exam') || has('prep') || has('mtech') || has('psu')))
+    return `<strong>GATE Exam:</strong> Gateway to M.Tech at IITs/NITs and PSU jobs (BHEL, ONGC, NTPC etc.). Syllabus: 85% core engineering + 15% General Aptitude + Maths. Prep time: 6–12 months. Target score 700+ for top IITs, 600+ for NITs. Best resources: Made Easy, GATE Academy, previous 20 years' papers. PSU cut-offs vary by company — ONGC typically needs 700+.`;
 
-  // Abroad / foreign university
-  if (/abroad|usa|uk|canada|australia|foreign univ|study abroad|ms abroad|gre/.test(q))
-    return `<strong>Studying Abroad:</strong><br>🇺🇸 <strong>USA:</strong> GRE/SAT + TOEFL/IELTS. Apply via Common App (UG) or direct portal (PG). Deadline: Dec–Jan.<br>🇬🇧 <strong>UK:</strong> UCAS for UG, direct for Masters. 1-year MS is popular.<br>🇨🇦 <strong>Canada:</strong> Strong for PR post-study. Apply Aug–Nov.<br><strong>Key exams:</strong> GRE 320+, IELTS 6.5+, TOEFL 100+.<br><strong>Top scholarships:</strong> Fulbright (USA), Chevening (UK), Vanier (Canada).<br>Start 18 months before target intake. Average cost: ₹30–80L for full program.`;
+  if (has('clat') || hasPhrase('law entrance', 'nlu entrance', 'law school entrance'))
+    return `<strong>CLAT Strategy:</strong> 5 sections — English, GK/Current Affairs, Legal Reasoning, Logical Reasoning, Quantitative Techniques. NLSIU Bangalore cutoff: ~100+/120. Prep time: 6–12 months. Best resources: Legal Edge, CL CLAT material, previous papers. Read one newspaper daily for GK. Legal Reasoning needs the most practice — do 50+ passages. Result: May/June.`;
 
-  // Psychology
-  if (/psychology|therapist|counselor|mental health career|clinical psychologist/.test(q))
-    return `<strong>Psychology Career in India:</strong> Path: BA/BSc Psychology → MA/MSc → MPhil Clinical Psychology (RCI registered) for clinical practice. <strong>Top institutes:</strong> NIMHANS Bangalore, TISS Mumbai, Delhi University, Christ University. Specializations: Clinical, Counseling, I/O Psychology, Neuropsychology. <strong>Salary:</strong> ₹4–8 LPA entry, ₹15–30 LPA for senior clinical roles. Private practice can earn ₹2,000–10,000/session. RCI registration is mandatory for clinical practice in India.`;
+  if (has('cuet') || hasPhrase('central university entrance', 'du entrance', 'delhi university entrance'))
+    return `<strong>CUET (Common University Entrance Test):</strong> Gateway to 250+ central universities including DU, JNU, BHU, AMU. Tests: Language, Domain subjects, General Test. Prep: NCERT 12th standard is sufficient for most domains. For DU top colleges (SRCC, LSR, Stephen's), aim for 95+ out of 100 in your domain subject. Exam window: May–June. Results: July.`;
 
-  // Law / CLAT
-  if (/\blaw\b|clat|lawyer|advocate|legal|nlsiu|nlu|barrister/.test(q))
-    return `<strong>Law Career in India:</strong> Gateway: CLAT exam for National Law Universities. <strong>Top NLUs:</strong> NLSIU Bangalore, NLU Delhi, NALSAR Hyderabad, NLU Jodhpur. CLAT cutoff for NLSIU: 100+/120. After LLB (5 years): join a top law firm, judiciary, or pursue LLM. <strong>Corporate lawyer salary:</strong> ₹8–50 LPA. Judiciary path: State judicial services exam. Also consider: UPSC IFS/IPS with law background. Bar Council enrollment mandatory to practice.`;
+  if (has('gre') || hasPhrase('ms abroad', 'masters abroad', 'phd abroad'))
+    return `<strong>GRE & MS Abroad:</strong> GRE has Verbal (170), Quant (170), and AWA (6). Target: 320+ total for top US universities. Quant 167+ is achievable with 4–6 weeks practice. Verbal needs vocabulary building — start 3 months early. For MS applications: GRE + TOEFL + SOP + LORs + transcripts. Application deadlines: Dec–Jan for Fall intake. Top universities: MIT, Stanford, Carnegie Mellon, UIUC.`;
 
-  // Entrepreneurship
-  if (/entrepreneur|startup|business idea|found|own company|venture/.test(q))
-    return `<strong>Entrepreneurship Path:</strong> You don't need a special degree — you need a problem to solve and the courage to act. Best education: BTech/MBA from IIT/IIM for network + credibility. <strong>Resources:</strong> IIM-B NSRCEL, IIT incubators, NASSCOM 10k Startups, Startup India. Funding path: Bootstrap → Angel (₹25L–2Cr) → VC. Skills to build: sales, product thinking, financial modeling. <strong>Reality check:</strong> 90% of startups fail. Build skills and financial runway before going full-time.`;
+  if (has('gmat') || hasPhrase('mba abroad', 'wharton', 'harvard business'))
+    return `<strong>GMAT & MBA Abroad:</strong> GMAT score range: 200–800. Target: 720+ for top 10 global schools. Sections: Verbal, Quantitative, Integrated Reasoning, AWA. Prep time: 3–6 months. Target schools: Wharton, Harvard, LBS, INSEAD, ISB. Application rounds: R1 (Sept–Oct) and R2 (Jan) are strongest. Work experience of 3–5 years is almost mandatory for top programs.`;
 
-  // After 10th
-  if (/after 10th|after class 10|class 11|stream select/.test(q))
-    return `<strong>After 10th — Stream Selection:</strong><br>📐 <strong>Science (PCM):</strong> If you love maths/logic → Engineering, Technology, Architecture<br>🧬 <strong>Science (PCB):</strong> If biology excites you → Medicine, Pharmacy, Research<br>📊 <strong>Commerce:</strong> If business/money interests you → CA, MBA, Finance<br>📚 <strong>Arts/Humanities:</strong> If you love people/ideas → Law, Journalism, Civil Services, Psychology<br><strong>Key advice:</strong> Don't pick a stream based on peer pressure. Pick what genuinely interests you — all streams lead to great careers if pursued with purpose.`;
+  if (has('nda') || hasPhrase('join army', 'join navy', 'join air force', 'defence career', 'military career'))
+    return `<strong>NDA & Defence Careers:</strong> NDA exam after Class 12 (PCM for Army/Navy/Air Force). Written test + SSB Interview. SSB is the real challenge — 5-day selection tests personality, leadership, and fitness. Also: CDS (after graduation), AFCAT (Air Force), MNS (Military Nursing). Army officer salary: ₹56K–2.5L/month + allowances. Highly respected career with exceptional perks.`;
 
-  // After 12th
-  if (/after 12th|after class 12|12th pass|what to do after/.test(q))
-    return `<strong>After 12th — Your Options:</strong><br>🔬 <strong>Science PCM:</strong> JEE for Engineering, UCEED/NID for Design, ISI/CMI for Maths<br>🩺 <strong>Science PCB:</strong> NEET for Medicine, CUET for BSc/Biotech, Psychology programs<br>💼 <strong>Commerce:</strong> CA Foundation, IPMAT for IIM, BBA, BCom<br>📖 <strong>Arts:</strong> CLAT for Law, IIMC for Journalism, CUET for BA, UPSC prep start<br><strong>Timeline tip:</strong> Entrance exam results come May–July. Have a plan A and plan B ready by February.`;
+  if (has('ibps') || hasPhrase('bank exam', 'sbi po', 'bank po', 'bank job', 'banking exam'))
+    return `<strong>Banking Exams (IBPS/SBI):</strong> Key exams: IBPS PO, IBPS Clerk, SBI PO, SBI Clerk, RBI Grade B. Sections: Reasoning, Quant, English, GA, Computer. Prep time: 4–6 months. RBI Grade B is the most prestigious — syllabus includes Economics and Finance in Phase 2. SBI PO salary: ₹36K–63K/month. Use: Oliveboard, Adda247, Testbook for practice.`;
 
-  // Government jobs
-  if (/government job|sarkari|bank job|ibps|ssc|railway|defence/.test(q))
-    return `<strong>Government Career Paths:</strong><br>🏛️ <strong>Civil Services (UPSC):</strong> IAS/IPS/IFS — highest prestige. Salary + perks + power.<br>🏦 <strong>Banking:</strong> IBPS PO/Clerk, SBI PO — stable, good salary ₹40K–80K/month.<br>🚆 <strong>Railways (RRB):</strong> Multiple posts across all qualifications.<br>🛡️ <strong>Defence:</strong> NDA (after 12th), CDS, AFCAT for commissioned officer.<br>📊 <strong>SSC:</strong> CGL for graduation-level posts in central government.<br>All have job security, pension, and good work-life balance. Prepare for at least 6–12 months.`;
+  if (has('ssc') || hasPhrase('ssc cgl', 'ssc chsl', 'government job exam', 'central government job'))
+    return `<strong>SSC Exams:</strong> SSC CGL (Group B/C posts), SSC CHSL (LDC/DEO), SSC CPO (Police), SSC MTS. CGL is the top exam — Income Tax, CBI, MEA posts. Sections: Reasoning, GK, Maths, English. Tier 1 is qualifying, Tier 2 decides rank. Prep time: 6–9 months. Salary: ₹25K–60K/month depending on post. Use: KD Campus, BSC Academy, Adda247.`;
 
-  // Commerce/Arts/specific streams
-  if (/bcom|commerce career|finance career/.test(q))
-    return `<strong>Commerce Career Options:</strong> CA (most respected), CFA (global finance), CS (Company Secretary), CMA, MBA Finance, Banking (IBPS), Actuarial Science, FinTech. <strong>Best path:</strong> BCom (H) from DU/NMIMS + CA simultaneously. CA earns ₹7–35 LPA, IIM MBA after work exp can reach ₹30–80 LPA.`;
+  // ── CAREER-SPECIFIC ───────────────────────────────────────────────────────
+  if (hasPhrase('data science', 'data scientist', 'machine learning', 'deep learning', 'artificial intelligence career', 'ml career', 'ai career') || (has('ml') && has('career')))
+    return `<strong>Data Science / AI / ML Career:</strong> Skills: Python (Pandas, NumPy, Sklearn), SQL, Statistics, ML algorithms, TensorFlow/PyTorch. Path: Andrew Ng's ML course → Kaggle competitions → real projects. Entry: Data Analyst → ML Engineer → Senior DS. <strong>Salaries:</strong> Entry ₹6–15 LPA, Senior ₹25–60 LPA. Top recruiters: Google, Amazon, Flipkart, CRED, Razorpay.`;
 
-  // Architecture
-  if (/architect|b\.?arch|nata|architecture career/.test(q))
-    return `<strong>Architecture Career:</strong> Gateway exam: <strong>NATA</strong> (National Aptitude Test in Architecture) or JEE Paper 2. Top colleges: SPA Delhi, CEPT Ahmedabad, IIT Kharagpur, NIT Calicut. B.Arch is 5 years. After graduating: join a firm, go independent, or specialize in urban planning or interior design. <strong>Salary:</strong> ₹4–8 LPA entry, ₹15–40 LPA with 10 years experience. Key skills: AutoCAD, Revit, SketchUp, and strong drawing fundamentals.`;
+  if (hasPhrase('software engineer', 'software development', 'web development', 'web developer', 'full stack', 'backend developer', 'frontend developer', 'become a developer', 'coding career', 'programming career'))
+    return `<strong>Software Engineering Path:</strong> Master DSA + one language (Python/Java/C++). Solve 300+ LeetCode problems. System Design matters for senior roles. <strong>Top companies</strong> pay ₹20–80 LPA freshers (Google, Microsoft, Flipkart). GitHub with 5+ real projects is your resume. College tier matters far less than your demonstrable skills.`;
 
-  // Fashion / NIFT
-  if (/fashion|nift|textile|styling/.test(q))
-    return `<strong>Fashion & Design Career:</strong> Gateway: <strong>NIFT entrance exam</strong> — covers creative ability, situation test, and general ability. Top colleges: NIFT Delhi/Mumbai/Chennai, Pearl Academy, Symbiosis Institute of Design. Specializations: fashion design, textile design, fashion communication, merchandising. <strong>Salary:</strong> ₹3–8 LPA entry, ₹15–30 LPA as creative director. International brands like Zara, H&M, and Myntra recruit from NIFT campuses.`;
+  if (hasPhrase('ux design', 'ui design', 'product design', 'graphic design', 'design career', 'become a designer') || (has('figma') && has('career')))
+    return `<strong>UX/UI Design Career:</strong> Core tools: Figma (must), Adobe XD, Protopie. Skills: user research, wireframing, prototyping, usability testing. Build 3–5 case studies on Behance. <strong>Salary:</strong> Junior ₹4–8 LPA, Mid ₹12–25 LPA, Senior ₹30–60 LPA. Path: freelance → startup → product company. NID/UCEED for formal education. Portfolio > degree, always.`;
 
-  // Animation / gaming
-  if (/animation|game design|gaming|vfx|3d artist/.test(q))
-    return `<strong>Animation & Game Design Career:</strong> Top courses: B.Des Animation (NID, Srishti), B.Sc Animation (Arena, MAAC, Frameboxx), B.Sc Game Design (ICAT, Arena). Skills: Maya, Blender, Unity, Unreal Engine. <strong>Industry:</strong> Film VFX (Prana Studios, DQ Entertainment), gaming (Ubisoft, EA, Zynga India), advertising animation. <strong>Salary:</strong> ₹3–6 LPA entry, ₹15–40 LPA senior VFX/game artists at global studios. Freelance potential is very high.`;
+  if (hasPhrase('become a doctor', 'doctor career', 'mbbs career', 'medical career', 'surgeon career') || (has('doctor') && !has('phd')))
+    return `<strong>Medical / MBBS Career:</strong> Gateway: NEET-UG. MBBS is 5.5 years + 1 year internship. Then MD/MS PG (3 years). <strong>Top colleges:</strong> AIIMS, JIPMER, Maulana Azad Medical, Grant Medical. Salary: Govt resident ₹50K–80K/month; post-PG specialist ₹2–8L/month. Private practice can earn much more. It's a long road but incredibly rewarding. Start NEET prep in Class 11.`;
 
-  // Journalism / media
-  if (/journal|media career|iimc|mass comm|content creat|youtuber/.test(q))
-    return `<strong>Journalism & Media Career:</strong> Top institutes: <strong>IIMC New Delhi</strong>, ACJ Chennai, XIC Mumbai, Symbiosis Journalism. Entrance: IIMC entrance exam (May). Specializations: print, broadcast, digital, photojournalism, PR, content strategy. <strong>Digital media salary:</strong> ₹3–8 LPA entry, ₹15–40 LPA for senior editors/content heads. YouTube/creator economy: income varies wildly — treat it as a business. Start building your portfolio NOW — blog, podcast, YouTube channel — before you graduate.`;
+  if (hasPhrase('chartered accountant', 'become a ca') || (has('accountant') && has('career')))
+    return `<strong>CA Career:</strong> India's most respected finance qualification. Path: Foundation (after 12th) → Intermediate (18 months) → Articleship (3 years) → Final. ICAI pass rates are tough — consistent study is key. Big 4 fresher salary: ₹7–12 LPA. Senior CA at MNC: ₹25–50 LPA. Combines best with CFA or MBA.`;
 
-  // Biotech / pharmacy
-  if (/biotech|pharmacy|pharma|pharmacist|biotechnology/.test(q))
-    return `<strong>Biotechnology & Pharmacy:</strong> B.Pharm / M.Pharm is the pharmacy path — GPAT is the key postgrad entrance. Biotech: BSc/BTech Biotech from JNU, BHU, VIT, Amity. Career paths: pharma R&D, clinical research, regulatory affairs, quality control, bioinformatics. <strong>Salary:</strong> ₹4–10 LPA entry, ₹20–50 LPA in MNC pharma with experience. Top recruiters: Sun Pharma, Dr. Reddy's, Cipla, Biocon, AstraZeneca. NEET score matters for some pharma programs.`;
+  if (hasPhrase('ias career', 'become an ias', 'become an ips', 'civil servant', 'collector career', 'ias officer career'))
+    return `<strong>IAS/IPS Career:</strong> Clear UPSC CSE — 3 stages: Prelims, Mains, Interview. IAS is the most powerful administrative role in India. Preparation: 12–18 months minimum, often 2–3 attempts. Salary: ₹56K–2.5L/month + government accommodation, car, and extensive perks. The real reward is the scope to create policy impact at district, state, and national levels.`;
 
-  // Psychology / social work
-  if (/social work|ngo|tiss|development sector/.test(q))
-    return `<strong>Social Work & Development Sector:</strong> Top path: BA/BSc → MSW from <strong>TISS Mumbai</strong> (best in India), Delhi University, NIMHANS. TISS-NET is the entrance exam. Careers: clinical social work, community development, policy, CSR, international organizations (UN, WHO, UNICEF). <strong>Salary:</strong> NGO sector ₹3–12 LPA, policy/UN ₹20–60 LPA. TISS alumni are highly sought after. Also consider: public policy programs at Azim Premji University, Young India Fellowship, and Ashoka University.`;
+  if (hasPhrase('lawyer career', 'become a lawyer', 'advocate career', 'law career', 'legal career') || (has('lawyer') || has('advocate')))
+    return `<strong>Law Career in India:</strong> Path: CLAT → 5-year LLB at NLU → Enrollment with Bar Council → Practice or join a law firm. <strong>Top NLUs:</strong> NLSIU Bangalore, NLU Delhi, NALSAR Hyderabad. Corporate law salary (Tier-1 firm): ₹12–25 LPA fresher, ₹50+ LPA in 8 years. Judiciary: State Judicial Services exam after LLB. Also: in-house counsel at corporations, legal tech, policy roles.`;
 
-  // Sports / fitness career
-  if (/sports career|physical education|fitness trainer|sports management/.test(q))
-    return `<strong>Sports Career in India:</strong> Paths: B.P.Ed (Physical Education), Sports Management (IISM, XLRI Sports), Sports Science, Sports Psychology, Athletic Coaching. Top institutes: LNIPE Gwalior, Amity Sports Management, IISM Mumbai. Alternative: become a certified fitness trainer (ACE, NASM certifications). <strong>Emerging roles:</strong> sports analytics, sports physio, esports management. Salary varies widely — elite coaches earn ₹5–25 LPA, sports management professionals ₹6–20 LPA at corporates.`;
+  if (hasPhrase('entrepreneur', 'start a startup', 'start my own business', 'startup career', 'found a company', 'own business'))
+    return `<strong>Entrepreneurship Path:</strong> No specific degree required — but IIT/IIM gives network + credibility. Start with customer discovery, not an idea. Resources: IIM-B NSRCEL, IIT incubators, NASSCOM 10k Startups, Startup India. Funding: Bootstrap → Angel (₹25L–2Cr) → VC. Reality: 90% of startups fail. Build skills + runway before going full-time. Start small — validate first.`;
 
-  // Teaching / professor
-  if (/teaching|teacher|professor|b\.?ed|net exam|academic career/.test(q))
-    return `<strong>Teaching & Academic Career:</strong> School teacher: B.Ed degree + CTET/State TET exam. Private school salary: ₹3–8 LPA. College lecturer: NET/SET exam after MA/MSc/MTech. University professor: PhD + NET + research publications. <strong>Salary:</strong> Govt college professor ₹57K–1.8L/month (7th Pay Commission). Teaching is deeply fulfilling — consider it if you love your subject and enjoy explaining things. IIT/IIM professors earn ₹2–5L/month with research grants.`;
+  if (hasPhrase('architecture career', 'become an architect', 'b.arch', 'nata exam', 'architecture college'))
+    return `<strong>Architecture Career:</strong> Gateway: NATA exam or JEE Paper 2. B.Arch is 5 years. Top colleges: SPA Delhi, CEPT Ahmedabad, IIT Kharagpur, NIT Calicut. Skills: AutoCAD, Revit, SketchUp + strong drawing fundamentals. <strong>Salary:</strong> ₹4–8 LPA entry, ₹15–40 LPA with experience. Specializations: urban planning, interior design, sustainable architecture, landscape architecture.`;
 
-  // Which career is best
-  if (/best career|which career|what career|career for me|help me choose/.test(q))
-    return `<strong>Which career is best for you?</strong> The answer depends on 3 things: <strong>(1) What genuinely interests you</strong> — not what pays most or what your parents want; <strong>(2) What you're naturally good at</strong> — strengths that come easier to you than others; <strong>(3) What the market rewards</strong> — skills that are in demand. The sweet spot is where all three overlap. Try our <strong>Gamified Interest Finder</strong> inside the Interest Finder module — it'll reveal your RIASEC type in 8 fun questions. Or just tell me your subjects, interests, and background and I'll suggest 3 specific paths for you right now!`;
+  if (hasPhrase('fashion design', 'nift', 'textile design', 'fashion career', 'become a fashion designer'))
+    return `<strong>Fashion & Design Career:</strong> Gateway: NIFT entrance exam (creative ability + situation test + general ability). Top: NIFT Delhi/Mumbai/Chennai, Pearl Academy, Symbiosis Institute of Design. Specializations: fashion design, textile design, fashion communication, merchandising. Salary: ₹3–8 LPA entry, ₹15–30 LPA as creative director. Zara, H&M, Myntra recruit from NIFT.`;
 
-  // Stream confusion
-  if (/science or commerce|pcm or pcb|which stream|confused about stream/.test(q))
-    return `<strong>PCM vs PCB vs Commerce:</strong><br>Choose <strong>PCM</strong> if: you love maths, logic, coding, physics, or want to be an engineer, architect, or data scientist.<br>Choose <strong>PCB</strong> if: biology excites you, you want to be a doctor, pharmacist, researcher, or work in healthcare.<br>Choose <strong>PCM+Biology</strong> if: you want maximum flexibility (engineering OR medical).<br>Choose <strong>Commerce</strong> if: business, economics, finance, or law interest you more than science.<br>Choose <strong>Arts</strong> if: humanities, social science, journalism, psychology, or civil services is your calling.<br><strong>Key truth:</strong> All streams lead to great careers. Pick what genuinely interests you — the market rewards passion and skill, not stream names.`;
+  if (hasPhrase('animation career', 'vfx career', 'game design career', 'become an animator', 'game developer career'))
+    return `<strong>Animation & Game Design Career:</strong> Courses: B.Des Animation (NID, Srishti), B.Sc Animation (Arena, MAAC). Skills: Maya, Blender, Unity, Unreal Engine. Industry: Film VFX (Prana Studios), gaming (Ubisoft, EA, Zynga India), ads. Salary: ₹3–6 LPA entry, ₹15–40 LPA senior. Freelance potential is excellent. Build a strong portfolio/showreel — it matters far more than your degree.`;
 
-  // Cluster / about
-  if (/cluster|about this|what is cluster|this platform/.test(q))
-    return `<strong>About Cluster:</strong> Cluster is an AI-powered career counseling platform built by Viransh Jain (Lead Dev), Dhruvika Varshney (Backend), M Samyuktha (Frontend), Jothirvishal R (Tech Advisor), and D Supriya Reddy (Data). It combines 6 modules: AI Career Counselor, Interest Finder, AI Chatbot, College Advisor, Explainable AI, and a Human Expert Panel. Mission: make world-class career guidance accessible to every Indian student.`;
+  if (hasPhrase('journalism career', 'become a journalist', 'iimc', 'mass communication', 'media career', 'content creator career'))
+    return `<strong>Journalism & Media Career:</strong> Top institutes: IIMC New Delhi, ACJ Chennai, XIC Mumbai. Entrance: IIMC entrance (May). Specializations: print, broadcast, digital, PR, content strategy. Digital media salary: ₹3–8 LPA entry, ₹15–40 LPA senior. Content creator/YouTube: treat it as a business — build now during college. Start a blog, podcast, or YouTube channel today.`;
 
-  // Hello / greeting
-  if (/^(hi|hello|hey|namaste|hii|helo|sup|good morning|good afternoon|what's up|wassup)/.test(q))
-    return `Hello! 👋 I'm <strong>Cluster AI</strong> — your personal career guide. Ask me anything:<br>• Which stream/career is right for me?<br>• How to prepare for JEE, NEET, UPSC, CAT, CLAT?<br>• Which colleges should I target?<br>• What's the salary for [any career]?<br>• How to get into design / law / medicine / IIT / IIM?<br>• Should I go abroad for studies?<br><br>I give you direct, complete answers — no redirects, no fluff. What's on your mind?`;
+  if (hasPhrase('psychology career', 'become a psychologist', 'clinical psychologist career', 'counselling career', 'therapist career'))
+    return `<strong>Psychology Career in India:</strong> Path: BA/BSc Psychology → MA/MSc → MPhil Clinical Psychology (RCI-registered) for clinical practice. Top: NIMHANS, TISS Mumbai, Delhi University. Salary: ₹4–8 LPA entry, ₹15–30 LPA senior clinical. Private practice: ₹2,000–10,000/session. RCI registration is mandatory for clinical practice. I/O Psychology is also booming in corporates.`;
 
-  // Thank you
-  if (/thank|thanks|tysm|great|awesome|helpful|nice/.test(q))
-    return `You're welcome! 🎯 The best career is where your <strong>interests + strengths + market demand</strong> all intersect. Keep asking — I'm here for everything from "what stream should I pick" to "how do I negotiate my salary". Best of luck! ✦`;
+  if (hasPhrase('biotechnology career', 'biotech career', 'pharmacy career', 'pharmacist career', 'pharmaceutical career'))
+    return `<strong>Biotech & Pharmacy:</strong> B.Pharm / M.Pharm → GPAT for postgrad. Biotech: BSc/BTech from JNU, BHU, VIT, Amity. Careers: pharma R&D, clinical research, regulatory affairs, bioinformatics. Salary: ₹4–10 LPA entry, ₹20–50 LPA in MNC pharma. Top recruiters: Sun Pharma, Dr. Reddy's, Cipla, Biocon, AstraZeneca.`;
 
-  // Comprehensive fallback — actually attempt to answer based on keywords
-  const kw = q.split(/\s+/).filter(w => w.length > 3);
-  const careerKws = ['engineer','doctor','lawyer','designer','scientist','teacher','manager','analyst','consultant','banker','artist','writer','filmmaker','pharmacist','nurse','architect','economist','researcher'];
-  const examKws = ['exam','test','preparation','prep','study','score','rank','percentile','cutoff','syllabus'];
-  const colKws = ['college','university','institute','admission','seat','campus'];
-  
-  const isCareer = kw.some(w => careerKws.some(c => c.includes(w) || w.includes(c)));
-  const isExam = kw.some(w => examKws.some(e => e.includes(w) || w.includes(e)));
-  const isCollege = kw.some(w => colKws.some(c => c.includes(w) || w.includes(c)));
+  if (hasPhrase('social work career', 'ngo career', 'tiss', 'development sector', 'become a social worker'))
+    return `<strong>Social Work & Development Sector:</strong> Best path: BA/BSc → MSW from TISS Mumbai (India's best). Entrance: TISS-NET. Careers: clinical social work, community development, CSR, policy, UN/WHO/UNICEF. Salary: NGO ₹3–12 LPA, policy/UN ₹20–60 LPA. Also consider: Azim Premji University, Young India Fellowship, Ashoka University for policy/social change careers.`;
 
-  if (isCareer)
-    return `Great question about that career path! Here's Cluster's direct take: Every career in India rewards <strong>genuine skill + consistent effort + right certifications</strong> more than just a degree. For the specific career you're asking about: (1) Identify the top 2–3 entry-level roles; (2) Find which degree/certification gets you there fastest; (3) Build a portfolio or proof of work while studying. Tell me the <strong>specific career name</strong> and I'll give you the exact path, top colleges, salary range, and key exams in one response!`;
-  
-  if (isExam)
-    return `For exam preparation, the universal formula is: <strong>Understand the syllabus completely → Study from the best 2–3 sources (not 10) → Practice previous year papers → Take timed mock tests → Analyse mistakes → Repeat.</strong> Tell me the <strong>specific exam</strong> (JEE, NEET, UPSC, CAT, CLAT, GATE, CUET, etc.) and I'll give you the exact books, timeline, and strategy that works.`;
-  
-  if (isCollege)
-    return `For college selection, focus on: <strong>(1) Placement record</strong> for your target role; <strong>(2) Faculty and research quality</strong>; <strong>(3) Location and network</strong>; <strong>(4) Your actual rank/score fit</strong>. Tell me your course, score, and location preference and I'll recommend the exact colleges with real cutoffs and placement data.`;
+  if (hasPhrase('sports career', 'physical education career', 'fitness trainer career', 'sports management career'))
+    return `<strong>Sports Career in India:</strong> Paths: B.P.Ed (Physical Education), Sports Management (IISM, XLRI), Sports Science, Sports Psychology. Top: LNIPE Gwalior, Amity Sports Management. Certified trainer: ACE/NASM certifications. Emerging: sports analytics, sports physio, esports management. Salary varies — elite coaches ₹5–25 LPA, sports management ₹6–20 LPA at corporates.`;
 
-  return `I'm Cluster AI and I can answer any career question directly! You asked about <strong>"${msg.slice(0,60)}${msg.length>60?'...':''}"</strong> — tell me a bit more specifically what you'd like to know. For example: "What is the career path for [role]?", "How do I prepare for [exam]?", "Which colleges are best for [course]?", or "What is the salary for [career]?" — and I'll give you a complete, direct answer immediately. 🎯`;
+  if (hasPhrase('teaching career', 'become a teacher', 'professor career', 'academic career', 'b.ed', 'net exam'))
+    return `<strong>Teaching & Academic Career:</strong> School teacher: B.Ed + CTET/State TET. Private school: ₹3–8 LPA. College lecturer: NET/SET exam after MA/MSc. Professor: PhD + NET + publications. Govt college professor: ₹57K–1.8L/month (7th Pay Commission). IIT/IIM professors earn ₹2–5L/month with research grants. Start publishing papers during your PhD — it's your career currency.`;
+
+  // ── SALARY QUESTIONS (specific career + salary) ──────────────────────────
+  if (has('salary') || has('lpa') || hasPhrase('how much earn', 'how much does', 'how much can i earn', 'average salary', 'starting salary', 'package'))
+    return `<strong>India Career Salary Guide:</strong><br>• Software Engineer (fresher–senior): ₹5–80 LPA<br>• Data Scientist: ₹8–60 LPA<br>• Doctor (post-PG specialist): ₹15–80 LPA<br>• CA: ₹7–35 LPA<br>• IAS Officer: ₹56K–2.5L/month + perks<br>• UX Designer: ₹5–45 LPA<br>• MBA (IIM-A): ₹30–80 LPA avg placement<br>• Lawyer (NLU grad, Tier-1 firm): ₹12–50 LPA<br>• Architect: ₹4–40 LPA<br>• Journalist/Content: ₹3–30 LPA<br>Tier-1 cities pay 30–50% more than Tier-2. Ask me about any specific career for a detailed breakdown.`;
+
+  // ── ABROAD EDUCATION ─────────────────────────────────────────────────────
+  if (hasPhrase('study abroad', 'go abroad', 'foreign university', 'us university', 'uk university', 'canada university', 'australia university') || (has('abroad') && (has('study') || has('university') || has('college'))))
+    return `<strong>Studying Abroad:</strong><br>🇺🇸 <strong>USA:</strong> GRE/SAT + TOEFL/IELTS. Common App (UG), direct portals (PG). Deadline: Dec–Jan.<br>🇬🇧 <strong>UK:</strong> UCAS for UG, direct for Masters. 1-year MS is very popular.<br>🇨🇦 <strong>Canada:</strong> Strong for PR post-study. Apply Aug–Nov.<br><strong>Key scores:</strong> GRE 320+, IELTS 6.5+, TOEFL 100+.<br><strong>Top scholarships:</strong> Fulbright (USA), Chevening (UK), Vanier (Canada). Start 18 months before intake. Average total cost: ₹30–80L.`;
+
+  // ── STREAM / COURSE SELECTION ─────────────────────────────────────────────
+  if (hasPhrase('after 10th', 'after class 10', 'after tenth', 'which stream to choose', 'stream selection', 'pcm or pcb', 'science or commerce', 'arts or science'))
+    return `<strong>Stream Selection After 10th:</strong><br>📐 <strong>Science PCM:</strong> Engineering, Technology, Architecture, Data Science — if you love maths & logic.<br>🧬 <strong>Science PCB:</strong> Medicine, Pharmacy, Research, Biotech — if biology excites you.<br>📊 <strong>Commerce:</strong> CA, MBA, Finance, Banking — if business and economics interest you.<br>📚 <strong>Arts/Humanities:</strong> Law, Journalism, Civil Services, Psychology — if people and ideas drive you.<br><em>Key:</em> Pick what genuinely interests you. All streams lead to excellent careers.`;
+
+  if (hasPhrase('after 12th', 'after class 12', 'after twelfth', '12th pass', 'what to do after 12'))
+    return `<strong>After 12th — Your Options:</strong><br>🔬 <strong>PCM:</strong> JEE for Engineering, UCEED/NID for Design, ISI/CMI for Maths<br>🩺 <strong>PCB:</strong> NEET for Medicine, CUET for BSc/Biotech, Psychology programs<br>💼 <strong>Commerce:</strong> CA Foundation, IPMAT for IIM, BBA, BCom (CUET)<br>📖 <strong>Arts:</strong> CLAT for Law, IIMC for Journalism, CUET for BA<br>Entrance results come May–July. Have a Plan A and Plan B ready by February.`;
+
+  // ── GOVERNMENT JOBS ───────────────────────────────────────────────────────
+  if (hasPhrase('government job', 'sarkari job', 'sarkari naukri', 'government career', 'public sector') || (has('government') && has('job')))
+    return `<strong>Government Career Paths:</strong><br>🏛️ <strong>UPSC:</strong> IAS/IPS/IFS — highest prestige, immense perks.<br>🏦 <strong>Banking:</strong> IBPS PO/Clerk, SBI PO — stable ₹40K–80K/month.<br>🚆 <strong>Railways (RRB):</strong> Multiple posts across qualifications.<br>🛡️ <strong>Defence:</strong> NDA (after 12th), CDS, AFCAT — commissioned officer.<br>📊 <strong>SSC:</strong> CGL for graduation-level central govt posts.<br>All have job security, pension, and good work-life balance.`;
+
+  // ── MBA / IIM ─────────────────────────────────────────────────────────────
+  if (hasPhrase('iim', 'mba preparation', 'mba admission', 'mba career', 'mba after engineering', 'pgdm') || (has('mba') && !has('gmat')))
+    return `<strong>MBA / IIM Guide:</strong> Best path: strong undergrad GPA + 2–3 years work experience + CAT 99+ percentile. IIM A/B/C offer the strongest ROI. Also consider: XLRI (XAT), NMIMS (NMAT), ISB (GMAT). MBA specializations: Finance, Marketing, Operations, Strategy. IIM A average CTC: ₹30+ LPA. MBA is most valuable when you have work experience to contextualise the learning.`;
+
+  // ── ENGINEERING VS MEDICINE ───────────────────────────────────────────────
+  if (hasPhrase('engineering or medicine', 'medicine or engineering', 'engineering vs medicine', 'iit or aiims', 'jee or neet'))
+    return `<strong>Engineering vs Medicine:</strong><br>🔧 <strong>Engineering (4 yrs):</strong> ₹5–80 LPA, fast growth, diverse roles in tech/consulting/product. JEE is gateway.<br>🏥 <strong>Medicine (5.5 + 3 yrs PG):</strong> ₹15–80 LPA post-specialization, direct human impact, structured career. NEET is gateway.<br>Choose Engineering if you love logic, systems, and tech. Choose Medicine if biology genuinely excites you and you want to heal. Both are excellent — your genuine interest, not peer pressure, should decide.`;
+
+  // ── COLLEGE QUESTIONS ─────────────────────────────────────────────────────
+  if (hasPhrase('best college', 'top college', 'which college', 'college for', 'colleges in india') || (has('college') && (has('recommendation') || has('suggest') || has('which'))))
+    return `<strong>College Recommendations:</strong> The best college depends on your course and score. Generally:<br>• Engineering: IITs, NITs, BITS Pilani, IIIT Hyderabad<br>• Medicine: AIIMS, JIPMER, top govt medical colleges<br>• MBA: IIM A/B/C, XLRI, ISB<br>• Law: NLSIU, NLU Delhi, NALSAR<br>• Design: NID, IIT Bombay IDC, NIFT<br>• Arts/Commerce: DU (SRCC, LSR, Stephen's), JNU, TISS<br>Tell me your specific course + score and I'll give you a precise list with cutoffs!`;
+
+  // ── WHICH CAREER SHOULD I CHOOSE ─────────────────────────────────────────
+  if (hasPhrase('which career', 'best career for me', 'what career', 'help me choose', 'confused about career', 'career advice', 'what should i do', 'career guidance') || (has('career') && (has('confused') || has('choose') || has('which') || has('suggest'))))
+    return `<strong>Finding the right career:</strong> The best fit lies at the intersection of 3 things: <strong>(1) What genuinely interests you</strong> — not just what pays; <strong>(2) What you're naturally good at</strong> — skills that come easier to you; <strong>(3) What the market rewards</strong>. Tell me your stream (PCM/PCB/Commerce/Arts) and your top 2–3 interests, and I'll suggest 3 specific career paths for you right now with full details — exams, colleges, and salary!`;
+
+  // ── BROAD FALLBACK WITH DIRECT ANSWER ATTEMPT ────────────────────────────
+  // Try to detect what they're asking about and give a relevant answer
+  const careerWords = {
+    'engineer': 'engineering', 'engineering': 'engineering',
+    'doctor': 'medical', 'medical': 'medical', 'medicine': 'medical',
+    'design': 'design', 'designer': 'design',
+    'lawyer': 'law', 'legal': 'law', 'law': 'law',
+    'finance': 'finance', 'banking': 'finance', 'bank': 'finance',
+    'science': 'science', 'research': 'science', 'researcher': 'science',
+    'business': 'business', 'management': 'business',
+    'art': 'creative', 'creative': 'creative', 'artist': 'creative',
+    'computer': 'tech', 'technology': 'tech', 'tech': 'tech',
+    'teaching': 'education', 'education': 'education', 'teacher': 'education',
+  };
+  const careerAnswers = {
+    engineering: `<strong>Engineering Careers:</strong> Core branches: CSE (highest demand), ECE, Mechanical, Civil, Chemical. Gateway: JEE Main/Advanced for IITs/NITs. Top private: BITS Pilani, VIT, Manipal. CSE salary: ₹6–80 LPA. Core engineering (Mech/Civil): ₹4–20 LPA. Tip: Your branch matters less than your skills — a Mechanical engineer who codes earns more than a CSE grad who doesn't. Build projects and internships from Year 1.`,
+    medical: `<strong>Medical Careers:</strong> MBBS → MD/MS specialization. Gateway: NEET-UG. Top: AIIMS, JIPMER, top govt colleges. Duration: MBBS 5.5 yrs + 1 yr internship + 3 yrs PG. Salary: Resident ₹50K–80K/month; Specialist ₹2–8L/month. Alternative medical paths: BDS (Dentistry), BAMS (Ayurveda), Physiotherapy, Pharmacy. Medicine is a marathon — start early and stay consistent.`,
+    design: `<strong>Design Careers:</strong> UX/UI Design, Graphic Design, Product Design, Fashion Design, Architecture, Animation. Top institutes: NID, IIT Bombay IDC, NIFT, Pearl Academy. Entry via: UCEED, NID DAT, NIFT entrance, NATA. Salary: ₹4–60 LPA depending on specialization and company. Portfolio is everything — start building it now, regardless of which design school you attend.`,
+    law: `<strong>Law Careers:</strong> 5-year integrated LLB via CLAT → top NLUs. Corporate law: ₹12–50 LPA. Judiciary: State Judicial Services exam. UPSC with law optional. Legal tech and policy are emerging high-paying fields. Bar Council enrollment is mandatory to practice. Network matters enormously in law — moot courts, internships, and senior advocates you shadow will shape your career.`,
+    finance: `<strong>Finance Careers:</strong> CA (most respected), CFA (global standard), Investment Banking, FinTech, Actuarial Science. BCom/BBA → CA or MBA Finance. IIM finance avg: ₹28–40 LPA. Goldman Sachs/JP Morgan India: ₹20–60 LPA. CFA + work experience: ₹15–50 LPA. Start with Excel and financial modeling skills — they're the entry ticket everywhere.`,
+    science: `<strong>Science & Research Careers:</strong> Research Scientist, Data Scientist, Economist, Environmental Scientist, Biotechnologist. Top paths: IISER (science), IISc (research), TIFR (physics/maths). Funded by: KVPY, CSIR NET, DBT fellowship. Research salary: ₹30K–1.5L/month during PhD, ₹10–40 LPA post-PhD in industry. Pure science is intellectually deep but competitive — be ready for a long educational runway.`,
+    business: `<strong>Business & Management Careers:</strong> MBA (CAT/GMAT), CA, Company Secretary, Marketing, Consulting, Entrepreneurship. IIM A/B/C: ₹30+ LPA. Top consulting (McKinsey, BCG, Bain): ₹25–60 LPA. Marketing at FMCG: ₹8–25 LPA. The business world rewards communication + data skills + leadership. Start building these from your undergraduate years.`,
+    creative: `<strong>Creative Careers:</strong> UX Design, Filmmaking, Advertising, Animation, Content Creation, Photography, Architecture, Fine Arts. Formal paths: NID, FTII, IIMC, NCA Pune, Srishti. Salary varies: ₹3–60 LPA depending on specialization. The key differentiator is your portfolio — start creating work and sharing it publicly now. Creative careers reward consistent output more than degrees.`,
+    tech: `<strong>Technology Careers:</strong> Software Engineering, Data Science, Cybersecurity, Cloud Computing, Product Management, DevOps. Entry via: JEE for IIT/NIT, BITSAT for BITS, or direct private colleges. Top recruiters: Google, Amazon, Microsoft, Flipkart, startups. Salaries: ₹6–80 LPA. The most important skill is the ability to learn continuously — tech changes every 3–5 years.`,
+    education: `<strong>Education Careers:</strong> School teacher (B.Ed + CTET), College lecturer (NET/SET), Professor (PhD + publications), EdTech professional, Instructional Designer, School principal. Govt professor salary: ₹57K–1.8L/month. IIT/IIM professors: ₹2–5L/month. EdTech (BYJU's, Unacademy): ₹6–20 LPA. Teaching is most fulfilling when you love your subject deeply — it shows and it matters.`,
+  };
+
+  for (const [word, category] of Object.entries(careerWords)) {
+    if (has(word) && careerAnswers[category]) {
+      return careerAnswers[category];
+    }
+  }
+
+  // Truly unknown — honest, helpful response
+  return `I'm Cluster AI, specialized in career guidance for Indian students. I didn't fully understand your question — <strong>"${raw.slice(0,70)}${raw.length>70?'...':''}"</strong>.<br><br>Here's what I can help with directly:<br>• <em>"How do I prepare for JEE/NEET/UPSC/CAT?"</em><br>• <em>"What career should I choose after 12th PCM?"</em><br>• <em>"What is the salary of a software engineer?"</em><br>• <em>"Which colleges are best for law/medicine/engineering?"</em><br>• <em>"How do I get into IIT/AIIMS/IIM?"</em><br><br>Try rephrasing your question with the career or exam name and I'll give you a direct, complete answer! 🎯`;
 }
 
 // =====================
