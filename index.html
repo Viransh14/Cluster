@@ -2144,7 +2144,7 @@
   <div class="hero-content">
     <div class="hero-badge">
       <div class="badge-dot"></div>
-      AI-Powered Career Counseling Platform
+      Human-led, AI-integrated Career Counseling Platform
     </div>
     <h1 class="hero-title">
       One place,<br>
@@ -3092,8 +3092,8 @@ document.addEventListener('mousemove', e => {
 }, { passive: true });
 
 (function loop() {
-  rx += (mx - rx) * 0.35;
-  ry += (my - ry) * 0.35;
+  rx += (mx - rx) * 0.8;
+  ry += (my - ry) * 0.8;
   ring.style.transform = `translate(${rx - 16}px,${ry - 16}px)`;
   requestAnimationFrame(loop);
 })();
